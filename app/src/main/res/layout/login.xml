@@ -14,16 +14,15 @@
         android:padding="24dp">
 
         <!-- Logo -->
-        <TextView
+        <ImageView
             android:layout_width="76dp"
             android:layout_height="76dp"
             android:layout_marginTop="55dp"
-            android:background="#E1F3E8"
-            android:gravity="center"
-            android:text="eF"
-            android:textColor="#21864B"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+            android:background="@drawable/bg_circle_logo"
+            android:contentDescription="@string/app_name"
+            android:padding="18dp"
+            android:src="@drawable/ic_shopping_cart"
+            app:tint="#0F766E" />
 
         <!-- App name -->
         <TextView
@@ -31,37 +30,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="eFleaMarket"
-            android:textColor="#21864B"
+            android:textColor="#0F766E"
             android:textSize="28sp"
             android:textStyle="bold" />
 
-
-        <!-- Login title -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:text="Đăng nhập"
-            android:textColor="#222222"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <!-- Email -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="Email"
-            android:textColor="#333333"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
+        <!-- Email Input -->
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="#21864B"
+            android:layout_marginTop="88dp"
+            android:backgroundTint="#0F766E"
             android:hint="Nhập địa chỉ email"
             android:inputType="textEmailAddress"
             android:padding="12dp"
@@ -70,29 +49,27 @@
             android:textSize="15sp"
             android:autofillHints="emailAddress" />
 
-        <!-- Password -->
-        <TextView
+        <!-- Password Input with Eye Icon -->
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Mật khẩu"
-            android:textColor="#333333"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#21864B"
-            android:hint="Nhập mật khẩu"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:textColor="#222222"
-            android:textColorHint="#999999"
-            android:textSize="15sp"
-            android:autofillHints="password" />
+            app:endIconMode="password_toggle"
+            app:boxBackgroundMode="none">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:backgroundTint="#0F766E"
+                android:hint="Nhập mật khẩu"
+                android:inputType="textPassword"
+                android:textColor="#222222"
+                android:textColorHint="#999999"
+                android:textSize="15sp"
+                android:autofillHints="password" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Forgot password -->
         <TextView
@@ -102,8 +79,8 @@
             android:layout_gravity="end"
             android:layout_marginTop="12dp"
             android:text="Quên mật khẩu?"
-            android:textColor="#21864B"
-            android:textSize="14sp" />
+            android:textColor="#0F766E"
+            android:textSize="16sp" />
 
         <!-- Login button -->
         <Button
@@ -115,7 +92,8 @@
             android:text="ĐĂNG NHẬP"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:cornerRadius="8dp" />
 
         <!-- Divider -->
         <LinearLayout
@@ -166,6 +144,11 @@
                 android:textColor="#333333"
                 android:textSize="14sp"
                 android:textStyle="bold"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_google"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@null"
                 app:strokeColor="#CCCCCC" />
 
             <!-- Facebook Login Button -->
@@ -180,6 +163,11 @@
                 android:textColor="#333333"
                 android:textSize="14sp"
                 android:textStyle="bold"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_facebook"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@null"
                 app:strokeColor="#CCCCCC" />
 
         </LinearLayout>
@@ -204,7 +192,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Đăng ký ngay"
-                android:textColor="#21864B"
+                android:textColor="#0F766E"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
