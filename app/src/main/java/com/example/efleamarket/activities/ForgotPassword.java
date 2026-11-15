@@ -30,8 +30,23 @@ public class ForgotPassword extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         // Ánh xạ các thành phần giao diện
+
         etResetEmail = findViewById(R.id.etResetEmail);
         btnSendResetEmail = findViewById(R.id.btnSendResetEmail);
+        tvBackToLogin = findViewById(R.id.tvBackToLogin);
+        // Điền sẵn email nếu được truyền từ Login
+        String email = getIntent().getStringExtra("email");
+
+        if (email != null && !email.isEmpty()) {
+            etResetEmail.setText(email);
+        }
+
+// Quay lại Login
+        tvBackToLogin.setOnClickListener(v -> finish());
+
+// Gửi yêu cầu khôi phục mật khẩu
+        btnSendResetEmail.setOnClickListener(v -> sendResetEmail());
+
 
         // Quay lại màn hình đăng nhập
         tvBackToLogin.setOnClickListener(v -> finish());
