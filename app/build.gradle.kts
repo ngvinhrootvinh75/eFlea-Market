@@ -45,6 +45,12 @@ dependencies {
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // Credential Manager & Google ID (for modern Google Sign-In)
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     // Facebook Login SDK
     implementation("com.facebook.android:facebook-login:16.3.0")
 

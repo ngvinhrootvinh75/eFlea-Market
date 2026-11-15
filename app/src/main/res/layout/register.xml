@@ -13,18 +13,16 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Logo -->
         <ImageView
             android:layout_width="76dp"
             android:layout_height="76dp"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="55dp"
             android:background="@drawable/bg_circle_logo"
             android:contentDescription="@string/app_name"
             android:padding="18dp"
             android:src="@drawable/ic_shopping_cart"
             app:tint="#0F766E" />
 
-        <!-- App name -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,11 +32,10 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <!-- Full Name Input -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="88dp"
             app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
@@ -61,7 +58,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Email Input -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,7 +76,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:autofillHints="emailAddress"
-                android:hint="Nhập địa chỉ email"
+                android:hint="Nhập email"
                 android:inputType="textEmailAddress"
                 android:textColor="#222222"
                 android:textColorHint="#999999"
@@ -88,7 +84,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Password Input with Eye Icon -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -116,7 +111,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Confirm Password Input with Eye Icon -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -144,7 +138,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Register button -->
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
@@ -157,7 +150,6 @@
             android:textStyle="bold"
             app:cornerRadius="8dp" />
 
-        <!-- Back to login -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -170,7 +162,7 @@
                 android:layout_height="wrap_content"
                 android:text="Đã có tài khoản? "
                 android:textColor="#777777"
-                android:textSize="14sp" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tvGoLogin"
@@ -178,7 +170,7 @@
                 android:layout_height="wrap_content"
                 android:text="Đăng nhập ngay"
                 android:textColor="#0F766E"
-                android:textSize="14sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
         </LinearLayout>

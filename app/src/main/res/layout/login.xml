@@ -13,7 +13,6 @@
         android:gravity="center_horizontal"
         android:padding="24dp">
 
-        <!-- Logo -->
         <ImageView
             android:layout_width="76dp"
             android:layout_height="76dp"
@@ -24,7 +23,6 @@
             android:src="@drawable/ic_shopping_cart"
             app:tint="#0F766E" />
 
-        <!-- App name -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,7 +32,6 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <!-- Email Input -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,7 +58,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Password Input with Eye Icon -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -89,7 +85,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Forgot password -->
         <TextView
             android:id="@+id/tvForgotPassword"
             android:layout_width="wrap_content"
@@ -100,7 +95,6 @@
             android:textColor="#0F766E"
             android:textSize="16sp" />
 
-        <!-- Login button -->
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
@@ -113,7 +107,6 @@
             android:textStyle="bold"
             app:cornerRadius="8dp" />
 
-        <!-- Divider -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -142,7 +135,6 @@
                 android:background="#DDDDDD" />
         </LinearLayout>
 
-        <!-- Social Login Buttons Layout -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -150,7 +142,6 @@
             android:orientation="horizontal"
             android:weightSum="2">
 
-            <!-- Google Login Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGoogleLogin"
                 style="?attr/materialButtonOutlinedStyle"
@@ -169,7 +160,6 @@
                 app:iconTint="@null"
                 app:strokeColor="#CCCCCC" />
 
-            <!-- Facebook Login Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFacebookLogin"
                 style="?attr/materialButtonOutlinedStyle"
@@ -190,7 +180,6 @@
 
         </LinearLayout>
 
-        <!-- Register navigation -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

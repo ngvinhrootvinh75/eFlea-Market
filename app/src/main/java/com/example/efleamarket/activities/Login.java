@@ -1,8 +1,9 @@
-
 package com.example.efleamarket.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,46 +12,100 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
 
 import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.FirebaseNetworkException;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Login extends AppCompatActivity {
+    private static final String TAG = "GOOGLE_LOGIN";
 
     private EditText etEmail, etPassword;
     private Button btnLogin;
     private MaterialButton btnGoogleLogin, btnFacebookLogin;
     private TextView tvForgotPassword, tvGoRegister;
 
-    // Google Sign-In
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+    private CredentialManager credentialManager;
+    private CallbackManager callbackManager;
     private GoogleSignInClient googleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
-
-    // Facebook Login
-    private CallbackManager callbackManager;
+    private boolean socialLoginInProgress = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login);
 
-        // Ánh xạ các thành phần giao diện
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        credentialManager = CredentialManager.create(this);
+
+        // Khởi tạo Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            if (account != null) {
+                                firebaseAuthWithGoogle(account.getIdToken());
+                            }
+                        } catch (ApiException e) {
+                            Toast.makeText(Login.this, "Đăng nhập Google thất bại (Mã lỗi: " + e.getStatusCode() + ")", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+        );
+
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -59,193 +114,85 @@ public class Login extends AppCompatActivity {
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         tvGoRegister = findViewById(R.id.tvGoRegister);
 
-        // Khởi tạo Google Sign-In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN
-        )
-                .requestEmail()
-                .build();
-
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-
-                        Task<GoogleSignInAccount> task =
-                                GoogleSignIn.getSignedInAccountFromIntent(
-                                        result.getData()
-                                );
-
-                        try {
-                            GoogleSignInAccount account =
-                                    task.getResult(ApiException.class);
-
-                            if (account != null) {
-                                Toast.makeText(
-                                        Login.this,
-                                        "Đăng nhập Google thành công: "
-                                                + account.getEmail(),
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            }
-
-                        } catch (ApiException e) {
-                            Toast.makeText(
-                                    Login.this,
-                                    "Đăng nhập Google thất bại (Mã lỗi: "
-                                            + e.getStatusCode() + ")",
-                                    Toast.LENGTH_LONG
-                            ).show();
-                        }
-                    }
-                }
-        );
-
-        // Khởi tạo Facebook Login
         callbackManager = CallbackManager.Factory.create();
-
-        LoginManager.getInstance().registerCallback(
-                callbackManager,
+        LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
-
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        Toast.makeText(
-                                Login.this,
-                                "Đăng nhập Facebook thành công!",
-                                Toast.LENGTH_LONG
-                        ).show();
+                        firebaseAuthWithFacebook(loginResult.getAccessToken().getToken());
                     }
 
                     @Override
                     public void onCancel() {
-                        Toast.makeText(
-                                Login.this,
-                                "Đăng nhập Facebook đã hủy",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        btnFacebookLogin.setEnabled(true);
+                        Toast.makeText(Login.this, "Đã hủy đăng nhập Facebook",
+                                Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(FacebookException exception) {
-                        Toast.makeText(
-                                Login.this,
-                                "Đăng nhập Facebook lỗi: "
-                                        + exception.getMessage(),
-                                Toast.LENGTH_LONG
-                        ).show();
+                        btnFacebookLogin.setEnabled(true);
+                        Log.e(TAG, "Facebook sign-in error", exception);
+                        Toast.makeText(Login.this, "Đăng nhập Facebook thất bại",
+                                Toast.LENGTH_LONG).show();
                     }
-                }
-        );
+                });
 
-        // Xử lý sự kiện đăng nhập thông thường
-        btnLogin.setOnClickListener(v -> login());
-
-        // Xử lý sự kiện đăng nhập Google
-        btnGoogleLogin.setOnClickListener(v -> {
-            // Đảm bảo người dùng có thể chọn tài khoản mới
-            googleSignInClient.signOut().addOnCompleteListener(this, task -> {
-                Intent intent = googleSignInClient.getSignInIntent();
-                googleSignInLauncher.launch(intent);
-            });
-        });
-
-        // Xử lý sự kiện đăng nhập Facebook
+        btnLogin.setOnClickListener(v -> loginWithEmail());
+        btnGoogleLogin.setOnClickListener(v -> signInWithGoogle());
         btnFacebookLogin.setOnClickListener(v -> {
+            btnFacebookLogin.setEnabled(false);
             LoginManager.getInstance().logInWithReadPermissions(
-                    Login.this,
-                    Collections.singletonList("email")
-            );
+                    Login.this, Collections.singletonList("email"));
         });
-
-        // Chuyển sang màn hình Quên mật khẩu
-        tvForgotPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(Login.this, ForgotPassword.class);
-            startActivity(intent);
-        });
-
-        // Xử lý sự kiện chuyển sang đăng ký
-        tvGoRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(Login.this, RegisterActivity.class);
-            startActivity(intent);
-        });
+        tvForgotPassword.setOnClickListener(v ->
+                startActivity(new Intent(Login.this, ForgotPassword.class)));
+        tvGoRegister.setOnClickListener(v ->
+                startActivity(new Intent(Login.this, RegisterActivity.class)));
     }
 
     @Override
-    protected void onActivityResult(
-            int requestCode,
-            int resultCode,
-            Intent data
-    ) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // Chuyển kết quả Facebook Login về callbackManager
-        callbackManager.onActivityResult(
-                requestCode,
-                resultCode,
-                data
-        );
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
-    // Kiểm tra thông tin đăng nhập
-    private void login() {
-
+    private void loginWithEmail() {
         String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String password = etPassword.getText().toString();
 
-        // Kiểm tra email trống
         if (email.isEmpty()) {
             etEmail.setError("Vui lòng nhập email");
             etEmail.requestFocus();
             return;
         }
 
-        // Kiểm tra định dạng email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Email không hợp lệ");
             etEmail.requestFocus();
             return;
         }
 
-        // Kiểm tra mật khẩu trống
         if (password.isEmpty()) {
             etPassword.setError("Vui lòng nhập mật khẩu");
             etPassword.requestFocus();
             return;
         }
 
-        // Kiểm tra độ dài tối thiểu 8 ký tự
         if (password.length() < 8) {
-            etPassword.setError(
-                    "Mật khẩu phải có ít nhất 8 ký tự"
-            );
+            etPassword.setError("Mật khẩu phải có ít nhất 8 ký tự");
             etPassword.requestFocus();
             return;
         }
 
-        // Kiểm tra chữ in hoa, chữ thường, số và ký tự đặc biệt
-        boolean hasUppercase = false;
-        boolean hasLowercase = false;
-        boolean hasDigit = false;
-        boolean hasSpecialChar = false;
+        boolean hasUppercase = !password.equals(password.toUpperCase());
+        boolean hasLowercase = !password.equals(password.toLowerCase());
+        boolean hasDigit = password.matches(".*\\d.*");
+        boolean hasSpecialChar = password.matches(
+                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"
+        );
 
-        for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) {
-                hasUppercase = true;
-            } else if (Character.isLowerCase(c)) {
-                hasLowercase = true;
-            } else if (Character.isDigit(c)) {
-                hasDigit = true;
-            } else {
-                hasSpecialChar = true;
-            }
-        }
-
-        if (!hasUppercase || !hasLowercase
-                || !hasDigit || !hasSpecialChar) {
-
+        if (!hasUppercase || !hasLowercase || !hasDigit || !hasSpecialChar) {
             etPassword.setError(
                     "Mật khẩu phải chứa chữ thường, chữ in hoa, số và ký tự đặc biệt"
             );
@@ -253,16 +200,55 @@ public class Login extends AppCompatActivity {
             return;
         }
 
-        // Đăng nhập thực tế bằng Firebase Auth
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+        btnLogin.setEnabled(false);
+        btnLogin.setText("ĐANG ĐĂNG NHẬP...");
+
+        auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
+                    btnLogin.setEnabled(true);
+                    btnLogin.setText("ĐĂNG NHẬP");
                     if (task.isSuccessful()) {
-                        Toast.makeText(Login.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(Login.this, MainActivity.class);
-                        startActivity(intent);
+                        Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(this, MainActivity.class));
                         finish();
                     } else {
-                        Toast.makeText(Login.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void signInWithGoogle() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        googleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            googleSignInLauncher.launch(signInIntent);
+        });
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Đăng nhập Firebase bằng Google thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void firebaseAuthWithFacebook(String token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token);
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    btnFacebookLogin.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Đăng nhập Facebook thành công!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
                     }
                 });
     }
