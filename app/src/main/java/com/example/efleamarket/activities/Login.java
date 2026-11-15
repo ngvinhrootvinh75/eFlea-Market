@@ -1,3 +1,4 @@
+
 package com.example.efleamarket.activities;
 
 import android.content.Intent;
@@ -57,23 +58,44 @@ public class Login extends AppCompatActivity {
         tvGoRegister = findViewById(R.id.tvGoRegister);
 
         // Khởi tạo Google Sign-In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
+                GoogleSignInOptions.DEFAULT_SIGN_IN
+        )
                 .requestEmail()
                 .build();
+
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+
+                        Task<GoogleSignInAccount> task =
+                                GoogleSignIn.getSignedInAccountFromIntent(
+                                        result.getData()
+                                );
+
                         try {
-                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            GoogleSignInAccount account =
+                                    task.getResult(ApiException.class);
+
                             if (account != null) {
-                                Toast.makeText(Login.this, "Đăng nhập Google thành công: " + account.getEmail(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(
+                                        Login.this,
+                                        "Đăng nhập Google thành công: "
+                                                + account.getEmail(),
+                                        Toast.LENGTH_LONG
+                                ).show();
                             }
+
                         } catch (ApiException e) {
-                            Toast.makeText(Login.this, "Đăng nhập Google thất bại (Mã lỗi: " + e.getStatusCode() + ")", Toast.LENGTH_LONG).show();
+                            Toast.makeText(
+                                    Login.this,
+                                    "Đăng nhập Google thất bại (Mã lỗi: "
+                                            + e.getStatusCode() + ")",
+                                    Toast.LENGTH_LONG
+                            ).show();
                         }
                     }
                 }
@@ -81,30 +103,47 @@ public class Login extends AppCompatActivity {
 
         // Khởi tạo Facebook Login
         callbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(callbackManager,
+
+        LoginManager.getInstance().registerCallback(
+                callbackManager,
                 new FacebookCallback<LoginResult>() {
+
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        Toast.makeText(Login.this, "Đăng nhập Facebook thành công!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                Login.this,
+                                "Đăng nhập Facebook thành công!",
+                                Toast.LENGTH_LONG
+                        ).show();
                     }
 
                     @Override
                     public void onCancel() {
-                        Toast.makeText(Login.this, "Đăng nhập Facebook đã hủy", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(
+                                Login.this,
+                                "Đăng nhập Facebook đã hủy",
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
 
                     @Override
                     public void onError(FacebookException exception) {
-                        Toast.makeText(Login.this, "Đăng nhập Facebook lỗi: " + exception.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                Login.this,
+                                "Đăng nhập Facebook lỗi: "
+                                        + exception.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
                     }
-                });
+                }
+        );
 
         // Xử lý sự kiện đăng nhập thông thường
         btnLogin.setOnClickListener(v -> login());
 
         // Xử lý sự kiện đăng nhập Google
         btnGoogleLogin.setOnClickListener(v -> {
-            // To ensure fresh account selection:
+            // Đảm bảo người dùng có thể chọn tài khoản mới
             googleSignInClient.signOut().addOnCompleteListener(this, task -> {
                 Intent intent = googleSignInClient.getSignInIntent();
                 googleSignInLauncher.launch(intent);
@@ -113,7 +152,10 @@ public class Login extends AppCompatActivity {
 
         // Xử lý sự kiện đăng nhập Facebook
         btnFacebookLogin.setOnClickListener(v -> {
-            LoginManager.getInstance().logInWithReadPermissions(Login.this, Collections.singletonList("email"));
+            LoginManager.getInstance().logInWithReadPermissions(
+                    Login.this,
+                    Collections.singletonList("email")
+            );
         });
 
         // Xử lý sự kiện quên mật khẩu
@@ -136,10 +178,19 @@ public class Login extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data
+    ) {
         super.onActivityResult(requestCode, resultCode, data);
+
         // Chuyển kết quả Facebook Login về callbackManager
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(
+                requestCode,
+                resultCode,
+                data
+        );
     }
 
     // Kiểm tra thông tin đăng nhập
@@ -169,9 +220,29 @@ public class Login extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra độ dài mật khẩu
-        if (password.length() < 6) {
-            etPassword.setError("Mật khẩu phải có ít nhất 6 ký tự");
+        // Kiểm tra độ dài tối thiểu 8 ký tự
+        if (password.length() < 8) {
+            etPassword.setError(
+                    "Mật khẩu phải có ít nhất 8 ký tự"
+            );
+            etPassword.requestFocus();
+            return;
+        }
+
+        // Kiểm tra chữ in hoa, chữ thường, số và ký tự đặc biệt
+        boolean hasUppercase = !password.equals(password.toUpperCase());
+        boolean hasLowercase = !password.equals(password.toLowerCase());
+        boolean hasDigit = password.matches(".*\\d.*");
+        boolean hasSpecialChar = password.matches(
+                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"
+        );
+
+        if (!hasUppercase || !hasLowercase
+                || !hasDigit || !hasSpecialChar) {
+
+            etPassword.setError(
+                    "Mật khẩu phải chứa chữ thường, chữ in hoa, số và ký tự đặc biệt"
+            );
             etPassword.requestFocus();
             return;
         }
