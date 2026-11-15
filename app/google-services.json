@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "142604758551",
+    "project_id": "eflea-market",
+    "storage_bucket": "eflea-market.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142604758551:android:8aec0999562252ec2e7652",
+        "android_client_info": {
+          "package_name": "com.example.efleamarket"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "142604758551-iolns0k9laed0m4auigbkirsgu226gfr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.efleamarket",
+            "certificate_hash": "6ba0c3b3db3926d4d4017744b933ef9ebd2b7702"
+          }
+        },
+        {
+          "client_id": "142604758551-thcijcf8t2414mie7b4knhdrosdj1hbj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.efleamarket",
+            "certificate_hash": "cc1ca5255538130338eb566f38561da6ca92a7f6"
+          }
+        },
+        {
+          "client_id": "142604758551-7bplpi84sd6c3la8ohck57peiseih705.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrkKL4E1ls0GiwxJWRGvwsz8k-Ou0Xq0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "142604758551-7bplpi84sd6c3la8ohck57peiseih705.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
