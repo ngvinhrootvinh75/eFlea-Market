@@ -13,7 +13,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -158,23 +160,17 @@ public class Login extends AppCompatActivity {
             );
         });
 
-        // Xử lý sự kiện quên mật khẩu
-        tvForgotPassword.setOnClickListener(v ->
-                Toast.makeText(
-                        Login.this,
-                        "Chức năng quên mật khẩu sẽ được bổ sung sau",
-                        Toast.LENGTH_SHORT
-                ).show()
-        );
+        // Chuyển sang màn hình Quên mật khẩu
+        tvForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, ForgotPassword.class);
+            startActivity(intent);
+        });
 
         // Xử lý sự kiện chuyển sang đăng ký
-        tvGoRegister.setOnClickListener(v ->
-                Toast.makeText(
-                        Login.this,
-                        "Màn hình đăng ký sẽ được tạo tiếp theo",
-                        Toast.LENGTH_SHORT
-                ).show()
-        );
+        tvGoRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, RegisterActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override
@@ -230,12 +226,22 @@ public class Login extends AppCompatActivity {
         }
 
         // Kiểm tra chữ in hoa, chữ thường, số và ký tự đặc biệt
-        boolean hasUppercase = !password.equals(password.toUpperCase());
-        boolean hasLowercase = !password.equals(password.toLowerCase());
-        boolean hasDigit = password.matches(".*\\d.*");
-        boolean hasSpecialChar = password.matches(
-                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"
-        );
+        boolean hasUppercase = false;
+        boolean hasLowercase = false;
+        boolean hasDigit = false;
+        boolean hasSpecialChar = false;
+
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                hasUppercase = true;
+            } else if (Character.isLowerCase(c)) {
+                hasLowercase = true;
+            } else if (Character.isDigit(c)) {
+                hasDigit = true;
+            } else {
+                hasSpecialChar = true;
+            }
+        }
 
         if (!hasUppercase || !hasLowercase
                 || !hasDigit || !hasSpecialChar) {
@@ -247,11 +253,17 @@ public class Login extends AppCompatActivity {
             return;
         }
 
-        // Tạm thời chưa kết nối Firebase
-        Toast.makeText(
-                Login.this,
-                "Thông tin hợp lệ! Chờ kết nối Firebase để đăng nhập.",
-                Toast.LENGTH_LONG
-        ).show();
+        // Đăng nhập thực tế bằng Firebase Auth
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(Login.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Login.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(Login.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }
