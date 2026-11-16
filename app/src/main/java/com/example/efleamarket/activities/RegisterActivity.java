@@ -1,6 +1,7 @@
 package com.example.efleamarket.activities;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.efleamarket.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -39,30 +41,22 @@ public class RegisterActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPhone = findViewById(R.id.etPhone);
         etPassword = findViewById(R.id.etPassword);
-        etConfirmPassword =
-                findViewById(R.id.etConfirmPassword);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
         btnRegister = findViewById(R.id.btnRegister);
         TextView tvGoLogin = findViewById(R.id.tvGoLogin);
 
         btnRegister.setOnClickListener(v -> registerUser());
-
-        // Register được mở từ LoginActivity
         tvGoLogin.setOnClickListener(v -> finish());
     }
 
     private void registerUser() {
 
-        String name = etFullName.getText()
-                .toString().trim();
-        String email = etEmail.getText()
-                .toString().trim();
-        String phone = etPhone.getText()
-                .toString().trim();
-        String password = etPassword.getText()
-                .toString();
-        String confirm = etConfirmPassword.getText()
-                .toString();
+        String name = etFullName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String phone = etPhone.getText().toString().trim();
+        String password = etPassword.getText().toString();
+        String confirm = etConfirmPassword.getText().toString();
 
         if (name.isEmpty()) {
             etFullName.setError("Vui lòng nhập họ tên");
@@ -104,13 +98,11 @@ public class RegisterActivity extends AppCompatActivity {
         boolean hasLowercase = !password.equals(password.toLowerCase());
         boolean hasDigit = password.matches(".*\\d.*");
         boolean hasSpecialChar = password.matches(
-                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"
-        );
+                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
 
         if (!hasUppercase || !hasLowercase || !hasDigit || !hasSpecialChar) {
             etPassword.setError(
-                    "Mật khẩu phải chứa chữ thường, chữ in hoa, số và ký tự đặc biệt"
-            );
+                    "Mật khẩu phải chứa chữ thường, chữ in hoa, số và ký tự đặc biệt");
             etPassword.requestFocus();
             return;
         }
@@ -122,99 +114,104 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         if (!password.equals(confirm)) {
-            etConfirmPassword.setError(
-                    "Mật khẩu không trùng khớp");
+            etConfirmPassword.setError("Mật khẩu không trùng khớp");
             etConfirmPassword.requestFocus();
             return;
         }
 
         btnRegister.setEnabled(false);
-        btnRegister.setText("Đang kiểm tra...");
+        btnRegister.setText("Đang đăng ký...");
 
-        // 1. Kiểm tra xem Số điện thoại đã có ai dùng chưa
-        db.collection("users")
-                .whereEqualTo("phone", phone)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        // Đã có người dùng SĐT này -> Báo lỗi và dừng lại
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, regTask -> {
+                    if (!regTask.isSuccessful()) {
                         resetButton();
-                        etPhone.setError("Số điện thoại này đã được đăng ký!");
-                        etPhone.requestFocus();
-                    } else {
-                        // SĐT chưa ai dùng -> Bắt đầu tạo tài khoản Firebase Auth
-                        btnRegister.setText("Đang đăng ký...");
-
-                        auth.createUserWithEmailAndPassword(email, password)
-                                .addOnCompleteListener(this, regTask -> {
-                                    if (!regTask.isSuccessful()) {
-                                        resetButton();
-                                        Toast.makeText(this,
-                                                "Đăng ký thất bại: "
-                                                        + (regTask.getException() != null
-                                                        ? regTask.getException().getMessage()
-                                                        : "Lỗi không xác định"),
-                                                Toast.LENGTH_LONG).show();
-                                        return;
-                                    }
-
-                                    FirebaseUser user = auth.getCurrentUser();
-
-                                    if (user == null) {
-                                        resetButton();
-                                        Toast.makeText(this,
-                                                "Không lấy được tài khoản",
-                                                Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-
-                                    // 2. Lưu thông tin (bao gồm phone) vào Firestore
-                                    saveProfile(user, name, email, phone);
-                                });
+                        String msg = regTask.getException() != null
+                                ? regTask.getException().getMessage()
+                                : "Lỗi không xác định";
+                        Toast.makeText(this,
+                                "Đăng ký thất bại: " + msg,
+                                Toast.LENGTH_LONG).show();
+                        return;
                     }
+
+                    FirebaseUser user = auth.getCurrentUser();
+                    if (user == null) {
+                        resetButton();
+                        Toast.makeText(this,
+                                "Không lấy được tài khoản",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    createUserDocs(user, name, phone);
                 });
     }
 
-    private void saveProfile(
-            FirebaseUser user,
-            String name,
-            String email,
-            String phone) {
+    private void createUserDocs(FirebaseUser user, String fullName, String phone) {
 
-        Map<String, Object> profile = new HashMap<>();
-        profile.put("uid", user.getUid());
-        profile.put("name", name);
-        profile.put("email", email);
-        profile.put("phone", phone);
-        profile.put("role", "user");
-        profile.put("status", "active");
-        profile.put("ratingAvg", 0.0);
-        profile.put("createdAt",
-                FieldValue.serverTimestamp());
+        DocumentReference userRef = db.collection("users").document(user.getUid());
+        DocumentReference privateRef = userRef.collection("private").document("info");
 
-        db.collection("users")
-                .document(user.getUid())
-                .set(profile)
-                .addOnSuccessListener(unused -> {
-                    resetButton();
+        // Document công khai: đúng 14 trường theo rules
+        Map<String, Object> publicData = new HashMap<>();
+        publicData.put("uid", user.getUid());
+        publicData.put("fullName", fullName);
+        publicData.put("email", user.getEmail() != null ? user.getEmail() : "");
+        publicData.put("avatarUrl", "");
+        publicData.put("bio", "");
+        publicData.put("loginProvider", "password");
+        publicData.put("location", null);
+        publicData.put("geohash", "");
+        publicData.put("ratingAvg", 0);
+        publicData.put("ratingCount", 0);
+        publicData.put("role", "user");
+        publicData.put("status", "active");
+        publicData.put("createdAt", FieldValue.serverTimestamp());
+        publicData.put("updatedAt", FieldValue.serverTimestamp());
 
-                    auth.signOut();
+        // Document riêng tư: chỉ chủ tài khoản đọc được
+        Map<String, Object> address = new HashMap<>();
+        address.put("street", "");
+        address.put("ward", "");
+        address.put("district", "");
+        address.put("city", "");
 
-                    Toast.makeText(this,
-                            "Đăng ký thành công!",
-                            Toast.LENGTH_LONG).show();
+        Map<String, Object> privateData = new HashMap<>();
+        privateData.put("phone", phone);
+        privateData.put("address", address);
 
-                    setResult(RESULT_OK);
-                    finish();
+        userRef.set(publicData)
+                .addOnSuccessListener(u -> {
+                    Log.d("FS_DEBUG", "users/{uid} OK");
+
+                    privateRef.set(privateData)
+                            .addOnSuccessListener(u2 -> {
+                                Log.d("FS_DEBUG", "private/info OK");
+                                resetButton();
+                                auth.signOut();
+                                Toast.makeText(this,
+                                        "Đăng ký thành công!",
+                                        Toast.LENGTH_LONG).show();
+                                setResult(RESULT_OK);
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("FS_DEBUG", "private/info FAIL", e);
+                                showSaveError("private/info", e);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    resetButton();
-
-                    Toast.makeText(this,
-                            "Đã tạo tài khoản nhưng lỗi lưu hồ sơ: "
-                                    + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    Log.e("FS_DEBUG", "users/{uid} FAIL", e);
+                    showSaveError("users/{uid}", e);
                 });
+    }
+
+    private void showSaveError(String where, Exception e) {
+        resetButton();
+        Toast.makeText(this,
+                "Tạo tài khoản được nhưng lỗi lưu " + where + ": " + e.getMessage(),
+                Toast.LENGTH_LONG).show();
     }
 
     private void resetButton() {
