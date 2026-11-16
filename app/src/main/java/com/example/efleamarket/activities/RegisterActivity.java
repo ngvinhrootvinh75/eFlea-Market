@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.efleamarket.R;
+import com.example.efleamarket.utils.LoadingDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,6 +26,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText etFullName, etEmail, etPhone;
     private EditText etPassword, etConfirmPassword;
     private Button btnRegister;
+    private LoadingDialog loadingDialog;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -36,6 +38,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        loadingDialog = new LoadingDialog(this);
 
         etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmail);
@@ -120,7 +123,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         btnRegister.setEnabled(false);
-        btnRegister.setText("Đang đăng ký...");
+        loadingDialog.show();
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, regTask -> {
@@ -215,6 +218,9 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void resetButton() {
+        if (loadingDialog != null) {
+            loadingDialog.dismiss();
+        }
         btnRegister.setEnabled(true);
         btnRegister.setText("ĐĂNG KÝ");
     }

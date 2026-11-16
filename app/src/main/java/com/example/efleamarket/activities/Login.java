@@ -2,7 +2,6 @@ package com.example.efleamarket.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CancellationSignal;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
@@ -15,18 +14,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.credentials.Credential;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.CustomCredential;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.GetCredentialCancellationException;
-import androidx.credentials.exceptions.GetCredentialException;
 
 import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
+import com.example.efleamarket.utils.LoadingDialog;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -38,24 +29,14 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Login extends AppCompatActivity {
     private static final String TAG = "GOOGLE_LOGIN";
@@ -64,14 +45,13 @@ public class Login extends AppCompatActivity {
     private Button btnLogin;
     private MaterialButton btnGoogleLogin, btnFacebookLogin;
     private TextView tvForgotPassword, tvGoRegister;
+    private LoadingDialog loadingDialog;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private CredentialManager credentialManager;
     private CallbackManager callbackManager;
     private GoogleSignInClient googleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
-    private boolean socialLoginInProgress = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +60,7 @@ public class Login extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        credentialManager = CredentialManager.create(this);
+        loadingDialog = new LoadingDialog(this);
 
         // Khởi tạo Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -175,7 +155,7 @@ public class Login extends AppCompatActivity {
         }
 
         btnLogin.setEnabled(false);
-        btnLogin.setText("ĐANG ĐĂNG NHẬP...");
+        loadingDialog.show();
 
         // 2. Kiểm tra xem người dùng nhập Email hay SĐT
         if (Patterns.EMAIL_ADDRESS.matcher(accountInput).matches()) {
@@ -193,7 +173,7 @@ public class Login extends AppCompatActivity {
                             signInFirebase(emailFound, password);
                         } else {
                             btnLogin.setEnabled(true);
-                            btnLogin.setText("ĐĂNG NHẬP");
+                            loadingDialog.dismiss();
                             etEmail.setError("Số điện thoại này chưa được đăng ký!");
                             etEmail.requestFocus();
                         }
@@ -201,7 +181,7 @@ public class Login extends AppCompatActivity {
         } else {
             // Định dạng không phải Email cũng không phải SĐT
             btnLogin.setEnabled(true);
-            btnLogin.setText("ĐĂNG NHẬP");
+            loadingDialog.dismiss();
             etEmail.setError("Định dạng Email hoặc Số điện thoại không đúng");
             etEmail.requestFocus();
         }
@@ -212,7 +192,7 @@ public class Login extends AppCompatActivity {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     btnLogin.setEnabled(true);
-                    btnLogin.setText("ĐĂNG NHẬP");
+                    loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(this, MainActivity.class));
@@ -233,9 +213,11 @@ public class Login extends AppCompatActivity {
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        loadingDialog.show();
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
+                    loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(this, MainActivity.class));
@@ -247,10 +229,12 @@ public class Login extends AppCompatActivity {
     }
 
     private void firebaseAuthWithFacebook(String token) {
+        loadingDialog.show();
         AuthCredential credential = FacebookAuthProvider.getCredential(token);
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     btnFacebookLogin.setEnabled(true);
+                    loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập Facebook thành công!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(this, MainActivity.class));

@@ -54,6 +54,8 @@ dependencies {
     // Facebook Login SDK
     implementation("com.facebook.android:facebook-login:19.0.1")
 
+    //Tai anh tu internet
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
