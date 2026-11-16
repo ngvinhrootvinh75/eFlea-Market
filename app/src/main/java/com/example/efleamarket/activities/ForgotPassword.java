@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.efleamarket.R;
+import com.example.efleamarket.utils.LoadingDialog;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPassword extends AppCompatActivity {
@@ -18,6 +19,7 @@ public class ForgotPassword extends AppCompatActivity {
     private EditText etResetEmail;
     private Button btnSendResetEmail;
     private TextView tvBackToLogin;
+    private LoadingDialog loadingDialog;
 
     private FirebaseAuth mAuth;
 
@@ -28,12 +30,13 @@ public class ForgotPassword extends AppCompatActivity {
 
         // Khởi tạo Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+        loadingDialog = new LoadingDialog(this);
 
         // Ánh xạ các thành phần giao diện
-
         etResetEmail = findViewById(R.id.etResetEmail);
         btnSendResetEmail = findViewById(R.id.btnSendResetEmail);
         tvBackToLogin = findViewById(R.id.tvBackToLogin);
+
         // Điền sẵn email nếu được truyền từ Login
         String email = getIntent().getStringExtra("email");
 
@@ -72,7 +75,7 @@ public class ForgotPassword extends AppCompatActivity {
 
         // Khóa nút trong lúc gửi email
         btnSendResetEmail.setEnabled(false);
-        btnSendResetEmail.setText("ĐANG GỬI...");
+        loadingDialog.show();
 
         // Gửi email thông qua Firebase Authentication
         mAuth.sendPasswordResetEmail(email)
@@ -80,9 +83,7 @@ public class ForgotPassword extends AppCompatActivity {
 
                     // Mở lại nút sau khi xử lý
                     btnSendResetEmail.setEnabled(true);
-                    btnSendResetEmail.setText(
-                            "GỬI LIÊN KẾT ĐẶT LẠI MẬT KHẨU"
-                    );
+                    loadingDialog.dismiss();
 
                     if (task.isSuccessful()) {
 
