@@ -158,17 +158,12 @@ public class Login extends AppCompatActivity {
     }
 
     private void loginWithEmail() {
-        String email = etEmail.getText().toString().trim();
+        String accountInput = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
 
-        if (email.isEmpty()) {
-            etEmail.setError("Vui lòng nhập email");
-            etEmail.requestFocus();
-            return;
-        }
-
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Email không hợp lệ");
+        // 1. Kiểm tra rỗng
+        if (accountInput.isEmpty()) {
+            etEmail.setError("Vui lòng nhập Email hoặc Số điện thoại");
             etEmail.requestFocus();
             return;
         }
@@ -179,30 +174,41 @@ public class Login extends AppCompatActivity {
             return;
         }
 
-        if (password.length() < 8) {
-            etPassword.setError("Mật khẩu phải có ít nhất 8 ký tự");
-            etPassword.requestFocus();
-            return;
-        }
-
-        boolean hasUppercase = !password.equals(password.toUpperCase());
-        boolean hasLowercase = !password.equals(password.toLowerCase());
-        boolean hasDigit = password.matches(".*\\d.*");
-        boolean hasSpecialChar = password.matches(
-                ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"
-        );
-
-        if (!hasUppercase || !hasLowercase || !hasDigit || !hasSpecialChar) {
-            etPassword.setError(
-                    "Mật khẩu phải chứa chữ thường, chữ in hoa, số và ký tự đặc biệt"
-            );
-            etPassword.requestFocus();
-            return;
-        }
-
         btnLogin.setEnabled(false);
         btnLogin.setText("ĐANG ĐĂNG NHẬP...");
 
+        // 2. Kiểm tra xem người dùng nhập Email hay SĐT
+        if (Patterns.EMAIL_ADDRESS.matcher(accountInput).matches()) {
+            // Trường hợp nhập EMAIL -> Đăng nhập trực tiếp
+            signInFirebase(accountInput, password);
+        } else if (Patterns.PHONE.matcher(accountInput).matches()) {
+            // Trường hợp nhập SỐ ĐIỆN THOẠI -> Tìm Email tương ứng trên Firestore
+            db.collection("users")
+                    .whereEqualTo("phone", accountInput)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            // Tìm thấy tài khoản -> Lấy email ra để đăng nhập
+                            String emailFound = task.getResult().getDocuments().get(0).getString("email");
+                            signInFirebase(emailFound, password);
+                        } else {
+                            btnLogin.setEnabled(true);
+                            btnLogin.setText("ĐĂNG NHẬP");
+                            etEmail.setError("Số điện thoại này chưa được đăng ký!");
+                            etEmail.requestFocus();
+                        }
+                    });
+        } else {
+            // Định dạng không phải Email cũng không phải SĐT
+            btnLogin.setEnabled(true);
+            btnLogin.setText("ĐĂNG NHẬP");
+            etEmail.setError("Định dạng Email hoặc Số điện thoại không đúng");
+            etEmail.requestFocus();
+        }
+    }
+
+    // Hàm phụ để tái sử dụng việc gọi auth.signInWithEmailAndPassword
+    private void signInFirebase(String email, String password) {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     btnLogin.setEnabled(true);
@@ -212,7 +218,9 @@ public class Login extends AppCompatActivity {
                         startActivity(new Intent(this, MainActivity.class));
                         finish();
                     } else {
-                        Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Đăng nhập thất bại: " +
+                                        (task.getException() != null ? task.getException().getMessage() : "Sai thông tin đăng nhập"),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }

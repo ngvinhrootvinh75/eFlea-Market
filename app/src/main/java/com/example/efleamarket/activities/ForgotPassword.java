@@ -40,14 +40,6 @@ public class ForgotPassword extends AppCompatActivity {
         if (email != null && !email.isEmpty()) {
             etResetEmail.setText(email);
         }
-
-// Quay lại Login
-        tvBackToLogin.setOnClickListener(v -> finish());
-
-// Gửi yêu cầu khôi phục mật khẩu
-        btnSendResetEmail.setOnClickListener(v -> sendResetEmail());
-
-
         // Quay lại màn hình đăng nhập
         tvBackToLogin.setOnClickListener(v -> finish());
 
