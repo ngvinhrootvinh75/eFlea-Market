@@ -52,7 +52,7 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Facebook Login SDK
-    implementation("com.facebook.android:facebook-login:16.3.0")
+    implementation("com.facebook.android:facebook-login:19.0.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
