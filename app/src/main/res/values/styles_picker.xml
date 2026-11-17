@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="EFlea.DatePickerDialog" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:colorAccent">@color/efleaTeal</item>
+        <item name="android:datePickerStyle">@style/EFlea.DatePicker</item>
+        <item name="android:textColorPrimary">#0F172A</item>
+        <item name="android:textColorSecondary">#64748B</item>
+    </style>
+
+    <style name="EFlea.DatePicker" parent="android:Widget.Material.Light.DatePicker">
+        <item name="android:headerBackground">@color/efleaMint</item>
+        <item name="android:headerMonthTextAppearance">@style/EFlea.DatePicker.HeaderText</item>
+        <item name="android:headerYearTextAppearance">@style/EFlea.DatePicker.HeaderText</item>
+        <item name="android:calendarTextColor">#0F172A</item>
+    </style>
+
+    <style name="EFlea.DatePicker.HeaderText" parent="">
+        <item name="android:textColor">@color/efleaTeal</item>
+    </style>
+
+    <color name="efleaTeal">#0F766E</color>
+    <color name="efleaMint">#E2F4EB</color>
+    <color name="efleaMintSoft">#F4FBF7</color>
+    <color name="efleaMintPressed">#C6E8D7</color>
+
+</resources>
