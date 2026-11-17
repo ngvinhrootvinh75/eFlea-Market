@@ -75,7 +75,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private String originalUsername = "";
     private Calendar selectedDob = null;
     private boolean dataLoaded = false;
-    private boolean userDocExists = false; // false → lần lưu đầu tiên là "tạo mới" hồ sơ
+    private boolean userDocExists = false;
     private String initialSnapshot = "";
 
     @Override
@@ -98,11 +98,9 @@ public class EditProfileActivity extends AppCompatActivity {
 
         btnCancel.setOnClickListener(v -> confirmExit());
 
-        // Chuông thông báo (giống Home / Profile)
         findViewById(R.id.btnNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Thông báo đang phát triển", Toast.LENGTH_SHORT).show());
         btnSave.setOnClickListener(v -> validateAndSave());
-        // Bấm vào ô ngày sinh hoặc icon cuốn lịch đều mở lịch để chọn
         etDob.setOnClickListener(v -> showDatePicker());
         tilDob.setEndIconOnClickListener(v -> showDatePicker());
 
@@ -144,7 +142,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void loadData() {
         loadingDialog.show();
-        // Email chỉ để xem (ô đã bị khoá trong layout)
         etEmail.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "");
 
         Tasks.whenAllSuccess(userRef.get(), privateRef.get())
@@ -177,7 +174,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
         etBio.setText(doc.exists() ? nn(doc.getString("bio")) : "");
 
-        // Avatar chỉ để xem: ảnh Google/Facebook → ảnh đã lưu → ảnh mặc định
         String avatarUrl = AvatarUtils.getProviderPhotoUrl(currentUser);
         if (isEmpty(avatarUrl) && doc.exists()) avatarUrl = doc.getString("avatarUrl");
         if (isEmpty(avatarUrl)) {
@@ -319,7 +315,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
         String fullName = text(etFullName);
         String username = text(etUsername).toLowerCase(Locale.ROOT);
-        String phone = text(etPhone).replace(" ", "");
+        String phone = text(etPhone).replaceAll("[\\s.-]", "");
+        if (phone.startsWith("+84")) phone = "0" + phone.substring(3); // chuẩn hoá giống Login
 
         boolean ok = true;
 
@@ -336,7 +333,7 @@ public class EditProfileActivity extends AppCompatActivity {
             ok = false;
         }
 
-        if (!phone.isEmpty() && !phone.matches("^(0|\\+84)\\d{9}$")) {
+        if (!phone.isEmpty() && !phone.matches("^0\\d{9}$")) {
             tilPhone.setError("Số điện thoại không hợp lệ (VD: 0987654321)");
             ok = false;
         }
@@ -353,7 +350,6 @@ public class EditProfileActivity extends AppCompatActivity {
         tilCity.setError(null);
         String city = text(actvCity);
         if (!city.isEmpty() && !provinces.contains(city)) {
-            // Dữ liệu cũ (trước sáp nhập) không còn trong danh sách → yêu cầu chọn lại
             tilCity.setError("Vui lòng chọn lại tỉnh/thành phố trong danh sách");
             ok = false;
         }
@@ -370,9 +366,31 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSave.setEnabled(false);
         loadingDialog.show();
 
-        checkUnique("phone", phone, originalPhone, tilPhone, "Số điện thoại đã được tài khoản khác sử dụng",
+        final String phoneFinal = phone;
+        checkPhoneFree(phoneFinal,
                 () -> checkUnique("username", username, originalUsername, tilUsername, "Tên người dùng đã có người dùng",
-                        () -> writeData(fullName, username, phone)));
+                        () -> writeData(fullName, username, phoneFinal)));
+    }
+
+    private void checkPhoneFree(String phone, Runnable next) {
+        if (phone.isEmpty() || phone.equals(originalPhone)) {
+            next.run();
+            return;
+        }
+        db.collection("phoneIndex").document(phone).get()
+                .addOnSuccessListener(this, snap -> {
+                    if (snap.exists() && !currentUser.getUid().equals(snap.getString("uid"))) {
+                        stopSaving();
+                        tilPhone.setError("Số điện thoại đã được tài khoản khác sử dụng");
+                        tilPhone.requestFocus();
+                        return;
+                    }
+                    next.run();
+                })
+                .addOnFailureListener(this, e -> {
+                    stopSaving();
+                    Toast.makeText(this, "Lỗi kiểm tra dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void checkUnique(String field, String value, String original,
@@ -436,12 +454,25 @@ public class EditProfileActivity extends AppCompatActivity {
         WriteBatch batch = db.batch();
         batch.set(userRef, pub, SetOptions.merge());
         batch.set(privateRef, priv, SetOptions.merge());
+
+        String email = currentUser.getEmail();
+        if (email != null && !email.isEmpty()) {
+            if (!originalPhone.isEmpty() && !originalPhone.equals(phone)) {
+                batch.delete(db.collection("phoneIndex").document(originalPhone)); // xoá số cũ
+            }
+            if (!phone.isEmpty()) {
+                Map<String, Object> idx = new HashMap<>();
+                idx.put("uid", currentUser.getUid());
+                idx.put("email", email);
+                batch.set(db.collection("phoneIndex").document(phone), idx);
+            }
+        }
         batch.commit()
                 .addOnSuccessListener(this, unused -> {
                     loadingDialog.dismiss();
                     userDocExists = true;
                     Toast.makeText(this, "Đã lưu hồ sơ", Toast.LENGTH_SHORT).show();
-                    finish(); // quay về Profile, Profile tự cập nhật
+                    finish();
                 })
                 .addOnFailureListener(this, e -> {
                     stopSaving();
@@ -480,6 +511,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 getSelectedGender(), text(etDob),
                 text(etStreet), text(actvWard), text(actvCity)});
     }
+
 
     private static String text(TextView et) {
         return et.getText() == null ? "" : et.getText().toString().trim();

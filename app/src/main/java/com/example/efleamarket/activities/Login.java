@@ -162,21 +162,31 @@ public class Login extends AppCompatActivity {
             // Trường hợp nhập EMAIL -> Đăng nhập trực tiếp
             signInFirebase(accountInput, password);
         } else if (Patterns.PHONE.matcher(accountInput).matches()) {
-            // Trường hợp nhập SỐ ĐIỆN THOẠI -> Tìm Email tương ứng trên Firestore
-            db.collection("users")
-                    .whereEqualTo("phone", accountInput)
+            // Trường hợp nhập SỐ ĐIỆN THOẠI -> Tra email trong phoneIndex/{sđt}
+            // (users/ chỉ đọc được khi đã đăng nhập, còn phoneIndex cho phép tra từng số)
+            String phoneKey = normalizePhone(accountInput);
+            db.collection("phoneIndex").document(phoneKey)
                     .get()
                     .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            // Tìm thấy tài khoản -> Lấy email ra để đăng nhập
-                            String emailFound = task.getResult().getDocuments().get(0).getString("email");
-                            signInFirebase(emailFound, password);
-                        } else {
+                        if (!task.isSuccessful()) {
+                            // Lỗi mạng / rules -> báo riêng, không nhầm thành "chưa đăng ký"
+                            btnLogin.setEnabled(true);
+                            loadingDialog.dismiss();
+                            Log.e(TAG, "phoneIndex lookup failed", task.getException());
+                            Toast.makeText(this, "Lỗi kết nối, vui lòng thử lại", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String emailFound = task.getResult().exists()
+                                ? task.getResult().getString("email") : null;
+                        if (emailFound == null || emailFound.isEmpty()) {
                             btnLogin.setEnabled(true);
                             loadingDialog.dismiss();
                             etEmail.setError("Số điện thoại này chưa được đăng ký!");
                             etEmail.requestFocus();
+                            return;
                         }
+                        // Tìm thấy tài khoản -> đăng nhập bằng email tương ứng
+                        signInFirebase(emailFound, password);
                     });
         } else {
             // Định dạng không phải Email cũng không phải SĐT
@@ -243,5 +253,11 @@ public class Login extends AppCompatActivity {
                         Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private static String normalizePhone(String raw) {
+        String p = raw.replaceAll("[\\s.-]", "");
+        if (p.startsWith("+84")) p = "0" + p.substring(3);
+        return p;
     }
 }

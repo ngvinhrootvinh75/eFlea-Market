@@ -57,7 +57,8 @@ public class RegisterActivity extends AppCompatActivity {
 
         String name = etFullName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
-        String phone = etPhone.getText().toString().trim();
+        // Chuẩn hoá SĐT để khớp với cách màn Login tra cứu: "+84 911 551 249" -> "0911551249"
+        String phone = normalizePhone(etPhone.getText().toString());
         String password = etPassword.getText().toString();
         String confirm = etConfirmPassword.getText().toString();
 
@@ -79,8 +80,8 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (!Patterns.PHONE.matcher(phone).matches()) {
-            etPhone.setError("Số điện thoại không hợp lệ");
+        if (!phone.matches("^0\\d{9}$")) {
+            etPhone.setError("Số điện thoại không hợp lệ (VD: 0987654321)");
             etPhone.requestFocus();
             return;
         }
@@ -125,6 +126,24 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setEnabled(false);
         loadingDialog.show();
 
+        // Kiểm tra SĐT đã có người dùng chưa (phoneIndex cho phép tra khi chưa đăng nhập)
+        db.collection("phoneIndex").document(phone).get()
+                .addOnSuccessListener(this, snap -> {
+                    if (snap.exists()) {
+                        resetButton();
+                        etPhone.setError("Số điện thoại đã được tài khoản khác sử dụng");
+                        etPhone.requestFocus();
+                        return;
+                    }
+                    createAccount(name, email, phone, password);
+                })
+                .addOnFailureListener(this, e -> {
+                    resetButton();
+                    Toast.makeText(this, "Lỗi kết nối, vui lòng thử lại", Toast.LENGTH_LONG).show();
+                });
+    }
+
+    private void createAccount(String name, String email, String phone, String password) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, regTask -> {
                     if (!regTask.isSuccessful()) {
@@ -177,7 +196,6 @@ public class RegisterActivity extends AppCompatActivity {
         Map<String, Object> address = new HashMap<>();
         address.put("street", "");
         address.put("ward", "");
-        address.put("district", "");
         address.put("city", "");
 
         Map<String, Object> privateData = new HashMap<>();
@@ -191,13 +209,9 @@ public class RegisterActivity extends AppCompatActivity {
                     privateRef.set(privateData)
                             .addOnSuccessListener(u2 -> {
                                 Log.d("FS_DEBUG", "private/info OK");
-                                resetButton();
-                                auth.signOut();
-                                Toast.makeText(this,
-                                        "Đăng ký thành công!",
-                                        Toast.LENGTH_LONG).show();
-                                setResult(RESULT_OK);
-                                finish();
+                                // Ghi bảng tra cứu SĐT -> email (phải ghi TRƯỚC khi signOut,
+                                // vì rules chỉ cho chính chủ đang đăng nhập ghi)
+                                writePhoneIndex(user, phone);
                             })
                             .addOnFailureListener(e -> {
                                 Log.e("FS_DEBUG", "private/info FAIL", e);
@@ -208,6 +222,40 @@ public class RegisterActivity extends AppCompatActivity {
                     Log.e("FS_DEBUG", "users/{uid} FAIL", e);
                     showSaveError("users/{uid}", e);
                 });
+    }
+
+    private void writePhoneIndex(FirebaseUser user, String phone) {
+        Map<String, Object> idx = new HashMap<>();
+        idx.put("uid", user.getUid());
+        idx.put("email", user.getEmail() != null ? user.getEmail() : "");
+
+        db.collection("phoneIndex").document(phone)
+                .set(idx)
+                .addOnCompleteListener(t -> {
+                    if (!t.isSuccessful()) {
+                        // Tài khoản vẫn tạo xong, chỉ chưa đăng nhập bằng SĐT được
+                        Log.e("FS_DEBUG", "phoneIndex FAIL", t.getException());
+                    }
+                    finishRegister(t.isSuccessful());
+                });
+    }
+
+    private void finishRegister(boolean phoneLoginReady) {
+        resetButton();
+        auth.signOut();
+        Toast.makeText(this,
+                phoneLoginReady
+                        ? "Đăng ký thành công!"
+                        : "Đăng ký thành công! (Tạm thời hãy đăng nhập bằng email)",
+                Toast.LENGTH_LONG).show();
+        setResult(RESULT_OK);
+        finish();
+    }
+
+    private static String normalizePhone(String raw) {
+        String p = raw == null ? "" : raw.trim().replaceAll("[\\s.-]", "");
+        if (p.startsWith("+84")) p = "0" + p.substring(3);
+        return p;
     }
 
     private void showSaveError(String where, Exception e) {
