@@ -12,13 +12,11 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingBottom="36dp">
-
-        <!-- Container cho Header + Avatar có dải nền phía sau (giống Home) -->
+>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Dải nền xanh kéo từ trên xuống bo 2 góc dưới (dùng chung với Home) -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="132dp"
@@ -29,7 +27,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- APP BRAND / HEADER BAR (cùng padding với Home) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -56,13 +53,11 @@
                         android:textSize="22sp"
                         android:textStyle="bold" />
 
-                    <!-- Khoảng trống đẩy chuông sang phải -->
                     <View
                         android:layout_width="0dp"
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <!-- Chuông thông báo (giống Home) -->
                     <ImageView
                         android:id="@+id/btnNotification"
                         android:layout_width="36dp"
@@ -74,7 +69,6 @@
                         app:tint="#0F766E" />
                 </LinearLayout>
 
-                <!-- 1. HEADER: ẢNH ĐẠI DIỆN + TÊN + USERNAME + TIỂU SỬ -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -83,7 +77,6 @@
                     android:orientation="vertical"
                     android:paddingHorizontal="20dp">
 
-                    <!-- Avatar tròn với viền trang nhã -->
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivAvatar"
                         android:layout_width="96dp"
@@ -96,7 +89,6 @@
                         app:strokeColor="#0F766E"
                         app:strokeWidth="2dp" />
 
-                    <!-- Họ và tên -->
                     <TextView
                         android:id="@+id/tvFullName"
                         android:layout_width="wrap_content"
@@ -107,7 +99,6 @@
                         android:textStyle="bold"
                         tools:text="Nguyễn Văn A" />
 
-                    <!-- Tên người dùng / ID tài khoản -->
                     <TextView
                         android:id="@+id/tvUsername"
                         android:layout_width="wrap_content"
@@ -117,7 +108,6 @@
                         android:textSize="14sp"
                         tools:text="@nguyenvana" />
 
-                    <!-- Huy hiệu xác thực (Verified Badge) -->
                     <TextView
                         android:id="@+id/tvStatusBadge"
                         android:layout_width="wrap_content"
@@ -133,7 +123,6 @@
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
-                    <!-- Tiểu sử / Giới thiệu -->
                     <TextView
                         android:id="@+id/tvBio"
                         android:layout_width="match_parent"
@@ -150,14 +139,12 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- Nội dung bên dưới -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="20dp">
 
-            <!-- 2. THẺ THỐNG KÊ HOẠT ĐỘNG (ĐÁNH GIÁ, ĐÃ BÁN, NGÀY THAM GIA) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -176,7 +163,6 @@
                     android:paddingTop="14dp"
                     android:paddingBottom="14dp">
 
-                    <!-- Đánh giá sao -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -208,7 +194,6 @@
                         android:layout_height="match_parent"
                         android:background="#E2E8F0" />
 
-                    <!-- Tin đăng / Đã bán -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -239,7 +224,6 @@
                         android:layout_height="match_parent"
                         android:background="#E2E8F0" />
 
-                    <!-- Ngày tham gia -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -268,7 +252,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 3. THÔNG TIN CÁ NHÂN & LIÊN HỆ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -298,7 +281,6 @@
                     android:paddingEnd="16dp"
                     android:paddingBottom="12dp">
 
-                    <!-- Số điện thoại -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -329,7 +311,6 @@
                         android:layout_height="1dp"
                         android:background="#F1F5F9" />
 
-                    <!-- Email -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -360,7 +341,6 @@
                         android:layout_height="1dp"
                         android:background="#F1F5F9" />
 
-                    <!-- Giới tính -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -391,7 +371,6 @@
                         android:layout_height="1dp"
                         android:background="#F1F5F9" />
 
-                    <!-- Ngày sinh -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -420,7 +399,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 4. ĐỊA CHỈ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -468,7 +446,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 5. NÚT CHỈNH SỬA HỒ SƠ -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEdit"
                 android:layout_width="match_parent"
@@ -482,7 +459,6 @@
                 app:cornerRadius="12dp"
                 app:elevation="0dp" />
 
-            <!-- 6. NÚT ĐĂNG XUẤT -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 style="?attr/materialButtonOutlinedStyle"

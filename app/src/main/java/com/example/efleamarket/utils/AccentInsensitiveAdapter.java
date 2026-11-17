@@ -14,10 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adapter cho ô chọn có gõ tìm kiếm, KHÔNG phân biệt dấu tiếng Việt.
- * Ví dụ: gõ "ba dinh" hoặc "Ba Đình" đều tìm ra "Phường Ba Đình".
- */
 public class AccentInsensitiveAdapter extends BaseAdapter implements Filterable {
 
     private final LayoutInflater inflater;
@@ -34,7 +30,6 @@ public class AccentInsensitiveAdapter extends BaseAdapter implements Filterable 
         for (String s : allItems) normalizedItems.add(normalize(s));
     }
 
-    /** Bỏ dấu + chữ thường: "Phường Ba Đình" → "phuong ba dinh". */
     public static String normalize(String s) {
         if (s == null) return "";
         String lower = s.toLowerCase(Locale.ROOT).replace('đ', 'd');

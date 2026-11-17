@@ -27,21 +27,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Màn hình hồ sơ cá nhân.
- *
- * - Mở từ Home (nút "Cá nhân") → xem hồ sơ của chính mình, có nút Chỉnh sửa + Đăng xuất.
- * - Mở từ chỗ khác kèm EXTRA_UID của người khác → chỉ xem, ẩn 2 nút trên.
- *   Ví dụ: intent.putExtra(ProfileActivity.EXTRA_UID, product.getSellerId());
- *
- * Mọi thông tin chỉ để xem; dữ liệu được lắng nghe realtime nên khi sửa hồ sơ,
- * có đánh giá mới hay bán thêm sản phẩm, màn hình tự cập nhật.
- */
+
 public class ProfileActivity extends AppCompatActivity {
 
     public static final String EXTRA_UID = "uid";
 
-    /** Đổi thành true nếu muốn người khác cũng thấy SĐT / địa chỉ. */
     private static final boolean SHOW_CONTACT_TO_OTHERS = false;
 
     private ShapeableImageView ivAvatar;
@@ -87,13 +77,12 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Không truyền uid → xem hồ sơ của chính mình
         String extraUid = getIntent().getStringExtra(EXTRA_UID);
         targetUid = (extraUid != null && !extraUid.isEmpty()) ? extraUid : currentUser.getUid();
         isOwner = targetUid.equals(currentUser.getUid());
 
         ivAvatar.setImageResource(R.drawable.ic_person);
-        tvSoldCount.setText("0"); // mặc định 0 khi chưa bán sản phẩm nào
+        tvSoldCount.setText("0");
 
         if (isOwner) {
             btnEdit.setVisibility(View.VISIBLE);
@@ -101,7 +90,6 @@ public class ProfileActivity extends AppCompatActivity {
             btnEdit.setOnClickListener(v -> openEditProfile());
             btnLogout.setOnClickListener(v -> logout());
         } else {
-            // Người khác xem: không có Chỉnh sửa / Đăng xuất
             btnEdit.setVisibility(View.GONE);
             btnLogout.setVisibility(View.GONE);
             if (!SHOW_CONTACT_TO_OTHERS) {
@@ -113,7 +101,6 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
 
-        // Chuông thông báo (giống Home)
         findViewById(R.id.btnNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Thông báo đang phát triển", Toast.LENGTH_SHORT).show());
     }
@@ -137,9 +124,6 @@ public class ProfileActivity extends AppCompatActivity {
         if (soldListener != null) { soldListener.remove(); soldListener = null; }
     }
 
-    // ---------------------------------------------------------------------
-    // Thông tin công khai: tên, bio, avatar, đánh giá, ngày tham gia
-    // ---------------------------------------------------------------------
     private void listenUserProfile() {
         userListener = db.collection("users").document(targetUid)
                 .addSnapshotListener((snapshot, error) -> {
@@ -176,7 +160,6 @@ public class ProfileActivity extends AppCompatActivity {
         String bio = doc.getString("bio");
         tvBio.setText(isEmpty(bio) ? "Chưa có giới thiệu" : bio);
 
-        // Avatar: (chủ hồ sơ) ảnh Google/Facebook → ảnh đã lưu → ảnh mặc định
         String avatarUrl = isOwner ? AvatarUtils.getProviderPhotoUrl(currentUser) : null;
         if (isEmpty(avatarUrl)) avatarUrl = doc.getString("avatarUrl");
         loadAvatar(avatarUrl);
@@ -215,7 +198,6 @@ public class ProfileActivity extends AppCompatActivity {
                 .into(ivAvatar);
     }
 
-    /** Tạo hồ sơ mặc định cho chính chủ khi đăng nhập lần đầu. */
     private void createDefaultProfile() {
         Map<String, Object> data = new HashMap<>();
         data.put("uid", targetUid);
@@ -228,8 +210,8 @@ public class ProfileActivity extends AppCompatActivity {
         data.put("bio", "");
         data.put("ratingAvg", 0.0);
         data.put("ratingCount", 0);
-        data.put("role", "user");       // bắt buộc theo Firestore Rules
-        data.put("status", "active");   // bắt buộc theo Firestore Rules
+        data.put("role", "user");
+        data.put("status", "active");
         data.put("createdAt", FieldValue.serverTimestamp());
 
         db.collection("users").document(targetUid)
@@ -238,10 +220,7 @@ public class ProfileActivity extends AppCompatActivity {
                         "Không tạo được hồ sơ: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    /**
-     * Lưu ảnh Google/Facebook của chính chủ vào Firestore để người khác xem hồ sơ cũng thấy.
-     * Cập nhật lại mỗi khi ảnh đổi (ví dụ đổi ảnh trên Google/Facebook, hoặc token Facebook mới).
-     */
+
     private void syncProviderAvatar(DocumentSnapshot doc) {
         String providerUrl = AvatarUtils.getProviderPhotoUrl(currentUser);
         if (providerUrl != null && !providerUrl.equals(doc.getString("avatarUrl"))) {
@@ -249,9 +228,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Số sản phẩm đã bán (realtime)
-    // ---------------------------------------------------------------------
     private void listenSoldCount() {
         soldListener = db.collection("products")
                 .whereEqualTo("sellerId", targetUid)
@@ -265,9 +241,6 @@ public class ProfileActivity extends AppCompatActivity {
                 });
     }
 
-    // ---------------------------------------------------------------------
-    // Thông tin riêng: SĐT, địa chỉ (realtime)
-    // ---------------------------------------------------------------------
     private void listenPrivateInfo() {
         privateListener = db.collection("users").document(targetUid)
                 .collection("private").document("info")
@@ -314,9 +287,6 @@ public class ProfileActivity extends AppCompatActivity {
                 });
     }
 
-    // ---------------------------------------------------------------------
-    // Nút bấm
-    // ---------------------------------------------------------------------
     private void openEditProfile() {
         // Lưu xong quay về đây, các listener realtime sẽ tự cập nhật màn hình
         startActivity(new Intent(this, EditProfileActivity.class));
@@ -325,8 +295,6 @@ public class ProfileActivity extends AppCompatActivity {
     private void logout() {
         FirebaseAuth.getInstance().signOut();
         LoginManager.getInstance().logOut(); // Facebook
-        // Nếu đăng nhập Google bằng GoogleSignInClient, nên signOut thêm để lần sau được chọn lại tài khoản:
-        // GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut();
         Toast.makeText(this, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
         goToLogin();
     }
@@ -338,9 +306,6 @@ public class ProfileActivity extends AppCompatActivity {
         finish();
     }
 
-    // ---------------------------------------------------------------------
-    // Tiện ích
-    // ---------------------------------------------------------------------
     private static boolean isEmpty(String s) {
         return s == null || s.trim().isEmpty();
     }

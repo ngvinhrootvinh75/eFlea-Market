@@ -49,16 +49,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Màn hình chỉnh sửa hồ sơ của chính người dùng đang đăng nhập.
- *
- * Dữ liệu:
- *  - users/{uid}                : fullName, username, bio, phone  (công khai)
- *  - users/{uid}/private/info   : phone, gender, dob, address{street, ward, city}
- *    (địa chỉ 2 cấp theo mô hình mới: xã/phường → tỉnh/thành, không còn quận/huyện)
- *
- * phone được lưu ở cả 2 nơi vì màn Login đang tìm tài khoản theo users.phone.
- */
 public class EditProfileActivity extends AppCompatActivity {
 
     private static final SimpleDateFormat DOB_FORMAT =
@@ -70,7 +60,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private TextInputEditText etStreet;
     private MaterialAutoCompleteTextView actvCity, actvWard;
     private List<String> provinces;
-    /** Tỉnh/thành → danh sách xã/phường (đọc từ assets/vn_wards.json). */
     private Map<String, List<String>> wardsByProvince = new LinkedHashMap<>();
     private List<String> currentWards = Collections.emptyList();
     private AccentInsensitiveAdapter wardAdapter;
@@ -82,7 +71,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private DocumentReference userRef, privateRef;
 
-    /** Giá trị ban đầu – dùng để kiểm tra trùng và phát hiện thay đổi. */
     private String originalPhone = "";
     private String originalUsername = "";
     private Calendar selectedDob = null;
@@ -154,9 +142,6 @@ public class EditProfileActivity extends AppCompatActivity {
         btnCancel = findViewById(R.id.btnCancel);
     }
 
-    // ---------------------------------------------------------------------
-    // TẢI DỮ LIỆU HIỆN TẠI
-    // ---------------------------------------------------------------------
     private void loadData() {
         loadingDialog.show();
         // Email chỉ để xem (ô đã bị khoá trong layout)
@@ -214,7 +199,6 @@ public class EditProfileActivity extends AppCompatActivity {
         if (!doc.exists()) return;
 
         String gender = doc.getString("gender");
-        // Layout mặc định chọn "Nam"; chỉ đổi khi dữ liệu đã lưu là "Nữ"
         if ("Nữ".equals(gender)) rgGender.check(R.id.rbFemale);
         else rgGender.check(R.id.rbMale);
 
@@ -236,8 +220,6 @@ public class EditProfileActivity extends AppCompatActivity {
         Map<String, Object> address = (Map<String, Object>) doc.get("address");
         if (address != null) {
             etStreet.setText(str(address.get("street")));
-            // Gán tỉnh trước → nạp danh sách xã/phường của tỉnh đó → gán xã/phường
-            // (false = không lọc danh sách khi gán sẵn giá trị)
             String city = str(address.get("city"));
             actvCity.setText(city, false);
             onProvinceSelected(city, false);
@@ -245,9 +227,6 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // DANH SÁCH 34 TỈNH / THÀNH PHỐ
-    // ---------------------------------------------------------------------
     private void setupProvinceDropdown() {
         provinces = Arrays.asList(getResources().getStringArray(R.array.vn_provinces));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -256,13 +235,11 @@ public class EditProfileActivity extends AppCompatActivity {
         actvCity.setDropDownBackgroundResource(R.drawable.bg_dropdown_light);
         actvCity.setOnItemClickListener((parent, view, position, id) -> {
             tilCity.setError(null);
-            // Đổi tỉnh → nạp xã/phường mới và xoá xã/phường cũ
             onProvinceSelected(adapter.getItem(position), true);
         });
 
         loadWardsFromAssets();
 
-        // Ô Phường/Xã: bấm vào là hiện cả danh sách, gõ để lọc (không cần dấu)
         actvWard.setDropDownBackgroundResource(R.drawable.bg_dropdown_light);
         actvWard.setThreshold(1);
         actvWard.setOnClickListener(v -> showAllWards());
@@ -270,7 +247,6 @@ public class EditProfileActivity extends AppCompatActivity {
         actvWard.setOnItemClickListener((parent, view, position, id) -> tilWard.setError(null));
     }
 
-    /** Đọc assets/vn_wards.json: [{ "name": "TP.Hà Nội", "wards": ["Phường Ba Đình", ...] }, ...] */
     private void loadWardsFromAssets() {
         try (InputStream is = getAssets().open("vn_wards.json")) {
             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
@@ -290,7 +266,6 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
-    /** Nạp danh sách xã/phường theo tỉnh; clear = true khi người dùng vừa đổi tỉnh. */
     private void onProvinceSelected(String province, boolean clear) {
         List<String> list = wardsByProvince.get(province);
         currentWards = list != null ? list : Collections.emptyList();
@@ -314,9 +289,6 @@ public class EditProfileActivity extends AppCompatActivity {
         wardAdapter.getFilter().filter(null, count -> actvWard.showDropDown());
     }
 
-    // ---------------------------------------------------------------------
-    // CHỌN NGÀY SINH
-    // ---------------------------------------------------------------------
     private void showDatePicker() {
         Calendar c = selectedDob != null ? (Calendar) selectedDob.clone() : Calendar.getInstance();
         if (selectedDob == null) c.set(2000, Calendar.JANUARY, 1);
@@ -332,15 +304,11 @@ public class EditProfileActivity extends AppCompatActivity {
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         dialog.show();
 
-        // Nút OK / Thoát màu xanh primary của app
         int teal = android.graphics.Color.parseColor("#0F766E");
         dialog.getButton(DatePickerDialog.BUTTON_POSITIVE).setTextColor(teal);
         dialog.getButton(DatePickerDialog.BUTTON_NEGATIVE).setTextColor(teal);
     }
 
-    // ---------------------------------------------------------------------
-    // KIỂM TRA & LƯU
-    // ---------------------------------------------------------------------
     private void validateAndSave() {
         if (!dataLoaded) return;
 
@@ -402,7 +370,6 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSave.setEnabled(false);
         loadingDialog.show();
 
-        // Kiểm tra trùng SĐT → trùng username → ghi dữ liệu
         checkUnique("phone", phone, originalPhone, tilPhone, "Số điện thoại đã được tài khoản khác sử dụng",
                 () -> checkUnique("username", username, originalUsername, tilUsername, "Tên người dùng đã có người dùng",
                         () -> writeData(fullName, username, phone)));
@@ -442,8 +409,6 @@ public class EditProfileActivity extends AppCompatActivity {
         pub.put("phone", phone);
         pub.put("updatedAt", FieldValue.serverTimestamp());
 
-        // Hồ sơ chưa tồn tại (thường gặp với tài khoản Google/Facebook):
-        // Firestore Rules yêu cầu đủ các trường này khi TẠO MỚI
         if (!userDocExists) {
             String photo = AvatarUtils.getProviderPhotoUrl(currentUser);
             pub.put("email", currentUser.getEmail() != null ? currentUser.getEmail() : "");
@@ -455,7 +420,6 @@ public class EditProfileActivity extends AppCompatActivity {
             pub.put("createdAt", FieldValue.serverTimestamp());
         }
 
-        // Thông tin riêng tư
         Map<String, Object> address = new HashMap<>();
         address.put("street", text(etStreet));
         address.put("ward", text(actvWard));
@@ -497,9 +461,6 @@ public class EditProfileActivity extends AppCompatActivity {
         return "";
     }
 
-    // ---------------------------------------------------------------------
-    // THOÁT KHI CÒN THAY ĐỔI CHƯA LƯU
-    // ---------------------------------------------------------------------
     private void confirmExit() {
         if (!dataLoaded || currentFormSnapshot().equals(initialSnapshot)) {
             finish();
@@ -520,9 +481,6 @@ public class EditProfileActivity extends AppCompatActivity {
                 text(etStreet), text(actvWard), text(actvCity)});
     }
 
-    // ---------------------------------------------------------------------
-    // TIỆN ÍCH
-    // ---------------------------------------------------------------------
     private static String text(TextView et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
