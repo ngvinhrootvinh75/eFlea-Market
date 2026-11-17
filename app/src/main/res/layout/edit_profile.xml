@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FA">
+
+    <!-- ===== NỘI DUNG CUỘN ===== -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="80dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- ===== HEADER + AVATAR Y CHANG PROFILE ===== -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Dải nền xanh kéo từ trên xuống bo 2 góc dưới (dùng chung với Home / Profile) -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="132dp"
+                    android:background="@drawable/bg_top_green_banner" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- APP BRAND / HEADER BAR (y chang Profile) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="20dp"
+                        android:paddingTop="20dp"
+                        android:paddingBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:contentDescription="@string/app_name"
+                            android:src="@drawable/ic_shopping_cart"
+                            app:tint="#0F766E" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="eFleaMarket"
+                            android:textColor="#0F766E"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <!-- Khoảng trống đẩy chuông sang phải -->
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <!-- Chuông thông báo -->
+                        <ImageView
+                            android:id="@+id/btnNotification"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Thông báo"
+                            android:padding="6dp"
+                            android:src="@android:drawable/ic_popup_reminder"
+                            app:tint="#0F766E" />
+                    </LinearLayout>
+
+                    <!-- Avatar tròn viền trang nhã (y chang Profile) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="20dp">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/ivAvatar"
+                            android:layout_width="96dp"
+                            android:layout_height="96dp"
+                            android:background="#FFFFFF"
+                            android:padding="2dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_person"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                            app:strokeColor="#0F766E"
+                            app:strokeWidth="2dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- ===== CÁC KHỐI FORM NHẬP LIỆU ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp">
+
+                <!-- 1. THÔNG TIN CÔNG KHAI -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Thông tin công khai"
+                    android:textColor="#334155"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#E2E8F0"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- Họ và tên -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilFullName"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Họ và tên *"
+                            app:boxStrokeColor="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etFullName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPersonName|textCapWords"
+                                android:maxLength="50"
+                                android:textColor="#0F172A"
+                                tools:text="Nguyễn Văn A" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Username -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilUsername"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="Tên người dùng"
+                            app:boxStrokeColor="#0F766E"
+                            app:hintTextColor="#0F766E"
+                            app:prefixText="\@">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etUsername"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textNoSuggestions"
+                                android:maxLength="20"
+                                android:textColor="#0F172A"
+                                tools:text="nguyenvana" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Tiểu sử -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilBio"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="Giới thiệu bản thân"
+                            app:boxStrokeColor="#0F766E"
+                            app:counterEnabled="true"
+                            app:counterMaxLength="150"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etBio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="top"
+                                android:inputType="textMultiLine|textCapSentences"
+                                android:maxLength="150"
+                                android:minLines="3"
+                                android:textColor="#0F172A"
+                                tools:text="Chuyên thanh lý đồ công nghệ, đồ gia dụng cũ chính hãng. Uy tín, giao nhanh toàn quốc!" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 2. THÔNG TIN CÁ NHÂN & LIÊN HỆ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Thông tin cá nhân &amp; Liên hệ"
+                    android:textColor="#334155"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#E2E8F0"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- Số điện thoại -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPhone"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Số điện thoại"
+                            app:boxStrokeColor="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPhone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="phone"
+                                android:maxLength="12"
+                                android:textColor="#0F172A"
+                                tools:text="0987 654 321" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Email (đồng bộ vị trí với Profile) -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilEmail"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:enabled="false"
+                            android:hint="Email (Tài khoản liên kết)"
+                            app:boxStrokeColor="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etEmail"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textEmailAddress"
+                                android:textColor="#64748B"
+                                tools:text="nguyenvana@gmail.com" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Giới tính -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Giới tính"
+                            android:textColor="#64748B"
+                            android:textSize="13sp" />
+
+                        <RadioGroup
+                            android:id="@+id/rgGender"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rbMale"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:buttonTint="#0F766E"
+                                android:checked="true"
+                                android:text="Nam"
+                                android:textColor="#0F172A" />
+
+                            <RadioButton
+                                android:id="@+id/rbFemale"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:buttonTint="#0F766E"
+                                android:text="Nữ"
+                                android:textColor="#0F172A" />
+
+                        </RadioGroup>
+
+                        <!-- Ngày sinh -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilDob"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="Ngày sinh"
+                            app:boxStrokeColor="#0F766E"
+                            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+                            app:endIconMode="custom"
+                            app:endIconTint="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etDob"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:cursorVisible="false"
+                                android:focusable="false"
+                                android:inputType="none"
+                                android:textColor="#0F172A"
+                                tools:text="15/08/1995" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 3. ĐỊA CHỈ GIAO NHẬN -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Địa chỉ giao nhận"
+                    android:textColor="#334155"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#E2E8F0"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- 1) Tỉnh / Thành phố: chọn trước, từ danh sách 34 tỉnh thành -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilCity"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Tỉnh / Thành phố"
+                            app:boxStrokeColor="#0F766E"
+                            app:endIconTint="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/actvCity"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="#0F172A"
+                                tools:text="TP.Hồ Chí Minh" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- 2) Phường / Xã: tự hiện danh sách theo tỉnh đã chọn, gõ để tìm (không cần dấu) -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilWard"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:enabled="false"
+                            android:hint="Phường / Xã"
+                            app:boxStrokeColor="#0F766E"
+                            app:endIconTint="#0F766E"
+                            app:helperText="Chọn tỉnh / thành phố trước"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/actvWard"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:completionThreshold="1"
+                                android:inputType="text|textNoSuggestions"
+                                android:textColor="#0F172A"
+                                tools:text="Phường Bến Thành" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- 3) Số nhà, tên đường -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilStreet"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="Số nhà, tên đường"
+                            app:boxStrokeColor="#0F766E"
+                            app:hintTextColor="#0F766E">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etStreet"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPostalAddress|textCapWords"
+                                android:textColor="#0F172A"
+                                tools:text="123 Lê Lợi" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ===== THANH NÚT DƯỚI ĐÁY ===== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E2E8F0" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+
+            <!-- Nút Hủy -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:text="HỦY"
+                android:textColor="#0F172A"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:rippleColor="#1A0F172A"
+                app:strokeColor="#0F172A"
+                app:strokeWidth="1dp" />
+
+            <!-- Nút Lưu thay đổi -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="12dp"
+                android:layout_weight="2"
+                android:backgroundTint="#0F766E"
+                android:text="LƯU THAY ĐỔI"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:elevation="0dp" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

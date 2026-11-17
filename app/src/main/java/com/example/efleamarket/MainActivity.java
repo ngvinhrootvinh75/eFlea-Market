@@ -22,7 +22,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import android.content.Intent;
+import com.example.efleamarket.activities.ProfileActivity;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView rvCategories, rvProducts;
@@ -166,7 +167,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.navMessages).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());
 
-        findViewById(R.id.navProfile).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Cá nhân đang phát triển", Toast.LENGTH_SHORT).show());
+        // Khi bấm vào nút Cá nhân trên thanh điều hướng dưới cùng
+        findViewById(R.id.navProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
     }
 }
