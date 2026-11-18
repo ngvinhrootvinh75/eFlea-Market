@@ -1,10 +1,12 @@
 package com.example.efleamarket.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,10 +43,19 @@ import java.util.Collections;
 public class Login extends AppCompatActivity {
     private static final String TAG = "GOOGLE_LOGIN";
 
+    // Ghi nhớ đăng nhập (lưu trong SharedPreferences)
+    private static final String PREFS = "efleamarket_prefs";
+    private static final String KEY_REMEMBER = "remember_me";
+    private static final String KEY_LAST_ACCOUNT = "last_account"; // email/SĐT đã nhập lần trước
+
+    /** Email/SĐT người dùng vừa gõ (null nếu đăng nhập bằng Google/Facebook). */
+    private String typedAccount = null;
+
     private EditText etEmail, etPassword;
     private Button btnLogin;
     private MaterialButton btnGoogleLogin, btnFacebookLogin;
     private TextView tvForgotPassword, tvGoRegister;
+    private CheckBox cbRemember;
     private LoadingDialog loadingDialog;
 
     private FirebaseAuth auth;
@@ -61,6 +72,19 @@ public class Login extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         loadingDialog = new LoadingDialog(this);
+
+        // ===== GHI NHỚ ĐĂNG NHẬP =====
+        // Firebase tự lưu phiên đăng nhập trên máy:
+        //  - Có tích "Ghi nhớ" → vào thẳng Home
+        //  - Không tích       → đăng xuất phiên cũ, bắt đăng nhập lại
+        if (auth.getCurrentUser() != null) {
+            if (isRememberMe()) {
+                goToMain();
+                return;
+            }
+            auth.signOut();
+            LoginManager.getInstance().logOut();
+        }
 
         // Khởi tạo Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -93,6 +117,17 @@ public class Login extends AppCompatActivity {
         btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         tvGoRegister = findViewById(R.id.tvGoRegister);
+        cbRemember = findViewById(R.id.cbRemember);
+        cbRemember.setChecked(isRememberMe());
+
+        // Điền sẵn tài khoản lần trước (nếu có tích "Ghi nhớ")
+        if (isRememberMe()) {
+            String last = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_LAST_ACCOUNT, "");
+            if (!last.isEmpty()) {
+                etEmail.setText(last);
+                etPassword.requestFocus();
+            }
+        }
 
         callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,
@@ -121,6 +156,7 @@ public class Login extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> loginWithEmail());
         btnGoogleLogin.setOnClickListener(v -> signInWithGoogle());
         btnFacebookLogin.setOnClickListener(v -> {
+            typedAccount = null;
             btnFacebookLogin.setEnabled(false);
             LoginManager.getInstance().logInWithReadPermissions(
                     Login.this, Collections.singletonList("email"));
@@ -156,6 +192,7 @@ public class Login extends AppCompatActivity {
 
         btnLogin.setEnabled(false);
         loadingDialog.show();
+        typedAccount = accountInput; // để lưu lại nếu đăng nhập thành công
 
         // 2. Kiểm tra xem người dùng nhập Email hay SĐT
         if (Patterns.EMAIL_ADDRESS.matcher(accountInput).matches()) {
@@ -205,8 +242,7 @@ public class Login extends AppCompatActivity {
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
-                        finish();
+                        onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập thất bại: " +
                                         (task.getException() != null ? task.getException().getMessage() : "Sai thông tin đăng nhập"),
@@ -216,6 +252,7 @@ public class Login extends AppCompatActivity {
     }
 
     private void signInWithGoogle() {
+        typedAccount = null;
         Intent signInIntent = googleSignInClient.getSignInIntent();
         googleSignInClient.signOut().addOnCompleteListener(this, task -> {
             googleSignInLauncher.launch(signInIntent);
@@ -230,8 +267,7 @@ public class Login extends AppCompatActivity {
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
-                        finish();
+                        onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập Firebase bằng Google thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
                     }
@@ -247,12 +283,34 @@ public class Login extends AppCompatActivity {
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Đăng nhập Facebook thành công!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
-                        finish();
+                        onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void onLoginSuccess() {
+        boolean remember = cbRemember == null || cbRemember.isChecked();
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putBoolean(KEY_REMEMBER, remember);
+        if (!remember) {
+            editor.remove(KEY_LAST_ACCOUNT);
+        } else if (typedAccount != null) {
+            editor.putString(KEY_LAST_ACCOUNT, typedAccount);
+        }
+        editor.apply();
+        goToMain();
+    }
+
+    private boolean isRememberMe() {
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_REMEMBER, true);
+    }
+
+    private void goToMain() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 
     private static String normalizePhone(String raw) {

@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
 import com.example.efleamarket.utils.AvatarUtils;
 import com.facebook.login.LoginManager;
@@ -103,6 +104,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         findViewById(R.id.btnNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Thông báo đang phát triển", Toast.LENGTH_SHORT).show());
+
+        setupBottomNav();
     }
 
     @Override
@@ -285,6 +288,26 @@ public class ProfileActivity extends AppCompatActivity {
                         tvDob.setText("Chưa cập nhật");
                     }
                 });
+    }
+
+    private void setupBottomNav() {
+        findViewById(R.id.navHome).setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
+        findViewById(R.id.navFavorites).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.navPost).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.navMessages).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());
+
+        // navProfile: đang ở trang Cá nhân nên không làm gì
     }
 
     private void openEditProfile() {

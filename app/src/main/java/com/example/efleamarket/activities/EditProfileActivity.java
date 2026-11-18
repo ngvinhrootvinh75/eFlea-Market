@@ -1,6 +1,7 @@
 package com.example.efleamarket.activities;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
 import com.example.efleamarket.utils.AccentInsensitiveAdapter;
 import com.example.efleamarket.utils.AvatarUtils;
@@ -100,6 +102,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         findViewById(R.id.btnNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Thông báo đang phát triển", Toast.LENGTH_SHORT).show());
+        setupBottomNav();
         btnSave.setOnClickListener(v -> validateAndSave());
         etDob.setOnClickListener(v -> showDatePicker());
         tilDob.setEndIconOnClickListener(v -> showDatePicker());
@@ -271,7 +274,7 @@ public class EditProfileActivity extends AppCompatActivity {
         boolean hasWards = !currentWards.isEmpty();
         tilWard.setEnabled(hasWards);
         tilWard.setHelperText(hasWards
-                ? currentWards.size() + " phường/xã · gõ tên để tìm nhanh"
+                ? currentWards.size() + " phường/xã - gõ tên để tìm nhanh"
                 : "Chọn tỉnh / thành phố trước");
         if (clear) {
             actvWard.setText("", false);
@@ -334,7 +337,7 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         if (!phone.isEmpty() && !phone.matches("^0\\d{9}$")) {
-            tilPhone.setError("Số điện thoại không hợp lệ (VD: 0987654321)");
+            tilPhone.setError("Số điện thoại không hợp lệ");
             ok = false;
         }
 
@@ -493,16 +496,42 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void confirmExit() {
+        leave(this::finish);
+    }
+
+    private void leave(Runnable go) {
         if (!dataLoaded || currentFormSnapshot().equals(initialSnapshot)) {
-            finish();
+            go.run();
             return;
         }
         new AlertDialog.Builder(this)
                 .setTitle("Bỏ thay đổi?")
                 .setMessage("Những thay đổi bạn vừa nhập sẽ không được lưu.")
                 .setNegativeButton("Tiếp tục sửa", null)
-                .setPositiveButton("Bỏ thay đổi", (d, w) -> finish())
+                .setPositiveButton("Bỏ thay đổi", (d, w) -> go.run())
                 .show();
+    }
+
+
+    private void setupBottomNav() {
+        findViewById(R.id.navHome).setOnClickListener(v -> leave(() -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        }));
+
+        // Cá nhân: quay về màn Profile (Chỉnh sửa hồ sơ được mở từ Profile)
+        findViewById(R.id.navProfile).setOnClickListener(v -> leave(this::finish));
+
+        findViewById(R.id.navFavorites).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.navPost).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.navMessages).setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());
     }
 
     private String currentFormSnapshot() {
