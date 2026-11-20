@@ -48,13 +48,13 @@ public class DataSeeder {
                 ));
 
                 list.add(new Product(
-                        "Xe đạp Fixed Gear Single Speed",
-                        1200000,
-                        "xe-dap",
-                        "Như mới (95%)",
-                        "Xe đi học hằng ngày, khung nhôm siêu nhẹ, lốp mới thay 1 tháng.",
+                        "Tai nghe Bluetooth Sony WH-CH520",
+                        850000,
+                        "phu-kien",
+                        "Như mới (98%)",
+                        "Tai nghe âm thanh cực hay, pin trâu 50h, đầy đủ hộp sạc.",
                         "Bình Thạnh, TP.HCM",
-                        "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500",
+                        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
                         currentUid, "Lê Hoàng Long", "selling"
                 ));
 

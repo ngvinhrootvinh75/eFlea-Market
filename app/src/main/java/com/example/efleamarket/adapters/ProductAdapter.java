@@ -16,7 +16,7 @@ import com.example.efleamarket.models.Product;
 
 import java.text.DecimalFormat;
 import java.util.List;
-
+import com.example.efleamarket.utils.CloudinaryHelper;
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProdViewHolder> {
 
     public interface OnProductClickListener {
@@ -52,7 +52,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProdView
 
         // Tải ảnh từ URL mạng bằng Glide
         Glide.with(mContext)
-                .load(prod.getImageUrl())
+                .load(CloudinaryHelper.thumbnail(prod.getCoverImage(), 400))
                 .placeholder(R.drawable.ic_shopping_cart)
                 .error(R.drawable.ic_shopping_cart)
                 .into(holder.ivThumb);
