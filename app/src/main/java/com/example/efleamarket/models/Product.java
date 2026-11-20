@@ -1,10 +1,21 @@
 package com.example.efleamarket.models;
 
 import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Product {
+
+    // Giá trị hợp lệ của trường status (A định nghĩa, Admin của B chỉ cập nhật)
+    public static final String STATUS_PENDING = "pending";
+    public static final String STATUS_SELLING = "selling";
+    public static final String STATUS_SOLD = "sold";
+    public static final String STATUS_HIDDEN = "hidden";
+
     @DocumentId
     private String id;
     private String title;
@@ -13,7 +24,9 @@ public class Product {
     private String condition;
     private String description;
     private String location;
-    private String imageUrl;
+    private List<String> images = new ArrayList<>();    // Danh sách URL ảnh, ảnh đầu = ảnh bìa
+    private List<String> keywords = new ArrayList<>();  // Từ khoá (dùng cho tìm kiếm và AI)
+    private String imageUrl;                            // CŨ: chỉ giữ để đọc dữ liệu mẫu cũ
     private String sellerId;
     private String sellerName;
     private String status;
@@ -24,6 +37,7 @@ public class Product {
     // Bắt buộc có constructor rỗng cho Firebase
     public Product() {}
 
+    // Giữ nguyên chữ ký cũ để DataSeeder không phải sửa
     public Product(String title, double price, String categoryId, String condition,
                    String description, String location, String imageUrl,
                    String sellerId, String sellerName, String status) {
@@ -33,10 +47,17 @@ public class Product {
         this.condition = condition;
         this.description = description;
         this.location = location;
-        this.imageUrl = imageUrl;
+        if (imageUrl != null && !imageUrl.isEmpty()) this.images.add(imageUrl);
         this.sellerId = sellerId;
         this.sellerName = sellerName;
         this.status = status;
+    }
+
+    /** Ảnh bìa: ảnh đầu tiên trong images, nếu không có thì lấy imageUrl cũ. Không lưu lên Firestore. */
+    @Exclude
+    public String getCoverImage() {
+        if (images != null && !images.isEmpty()) return images.get(0);
+        return imageUrl;
     }
 
     public String getId() { return id; }
@@ -59,6 +80,12 @@ public class Product {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public List<String> getImages() { return images; }
+    public void setImages(List<String> images) { this.images = images; }
+
+    public List<String> getKeywords() { return keywords; }
+    public void setKeywords(List<String> keywords) { this.keywords = keywords; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

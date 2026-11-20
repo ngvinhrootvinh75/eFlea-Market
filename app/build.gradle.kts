@@ -56,6 +56,8 @@ dependencies {
 
     // Tai anh tu internet
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation("com.cloudinary:cloudinary-android:3.1.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
