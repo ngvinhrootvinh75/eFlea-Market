@@ -5,13 +5,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.efleamarket.MainActivity;
@@ -51,6 +57,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import android.net.Uri;
+import android.widget.ProgressBar;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import com.example.efleamarket.repositories.UserRepository;
+
 public class EditProfileActivity extends AppCompatActivity {
 
     private static final SimpleDateFormat DOB_FORMAT =
@@ -68,6 +81,16 @@ public class EditProfileActivity extends AppCompatActivity {
     private RadioGroup rgGender;
     private View btnSave, btnCancel;
     private LoadingDialog loadingDialog;
+    private View btnChangeAvatar;
+    private ProgressBar pbAvatar;
+    private String newAvatarUrl = null;
+    private boolean uploadingAvatar = false;
+    private String currentAvatarUrl = null;
+
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickAvatar =
+            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                if (uri != null) uploadAvatar(uri);
+            });
 
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
@@ -82,8 +105,10 @@ public class EditProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_profile);
+        applySystemBarPadding();
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -97,7 +122,8 @@ public class EditProfileActivity extends AppCompatActivity {
         loadingDialog = new LoadingDialog(this);
 
         bindViews();
-
+        ivAvatar.setOnClickListener(v -> openAvatarPicker());
+        btnChangeAvatar.setOnClickListener(v -> openAvatarPicker());
         btnCancel.setOnClickListener(v -> confirmExit());
 
         findViewById(R.id.btnNotification).setOnClickListener(v ->
@@ -141,6 +167,8 @@ public class EditProfileActivity extends AppCompatActivity {
         rgGender = findViewById(R.id.rgGender);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
+        btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
+        pbAvatar = findViewById(R.id.pbAvatar);
     }
 
     private void loadData() {
@@ -177,8 +205,9 @@ public class EditProfileActivity extends AppCompatActivity {
 
         etBio.setText(doc.exists() ? nn(doc.getString("bio")) : "");
 
-        String avatarUrl = AvatarUtils.getProviderPhotoUrl(currentUser);
-        if (isEmpty(avatarUrl) && doc.exists()) avatarUrl = doc.getString("avatarUrl");
+        String avatarUrl = doc.exists() ? doc.getString("avatarUrl") : null;
+        if (isEmpty(avatarUrl)) avatarUrl = AvatarUtils.getProviderPhotoUrl(currentUser);
+        currentAvatarUrl = avatarUrl;
         if (isEmpty(avatarUrl)) {
             ivAvatar.setImageResource(R.drawable.ic_person);
         } else {
@@ -284,7 +313,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void showAllWards() {
         if (wardAdapter == null || currentWards.isEmpty()) return;
-        // Đã chọn sẵn 1 xã/phường → vẫn hiện cả danh sách thay vì chỉ 1 dòng
         wardAdapter.getFilter().filter(null, count -> actvWard.showDropDown());
     }
 
@@ -308,9 +336,54 @@ public class EditProfileActivity extends AppCompatActivity {
         dialog.getButton(DatePickerDialog.BUTTON_NEGATIVE).setTextColor(teal);
     }
 
+    private void openAvatarPicker() {
+        if (uploadingAvatar) return;
+        pickAvatar.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+    }
+
+    private void uploadAvatar(Uri uri) {
+        Glide.with(this).load(uri).placeholder(R.drawable.ic_person).into(ivAvatar);
+        uploadingAvatar = true;
+        pbAvatar.setVisibility(View.VISIBLE);
+        btnSave.setEnabled(false);
+
+        UserRepository.getInstance().uploadAvatar(this, uri, new UserRepository.Callback<String>() {
+            @Override
+            public void onSuccess(String url) {
+                if (isFinishing() || isDestroyed()) return;
+                uploadingAvatar = false;
+                newAvatarUrl = url;
+                pbAvatar.setVisibility(View.GONE);
+                btnSave.setEnabled(true);
+                Toast.makeText(EditProfileActivity.this,
+                        "Đã tải ảnh lên, bấm Lưu thay đổi để cập nhật", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                uploadingAvatar = false;
+                pbAvatar.setVisibility(View.GONE);
+                btnSave.setEnabled(true);
+                Glide.with(EditProfileActivity.this)
+                        .load(newAvatarUrl != null ? newAvatarUrl : currentAvatarUrl)
+                        .placeholder(R.drawable.ic_person)
+                        .error(R.drawable.ic_person)
+                        .into(ivAvatar);
+                Toast.makeText(EditProfileActivity.this,
+                        "Tải ảnh thất bại: " + message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void validateAndSave() {
         if (!dataLoaded) return;
-
+        if (uploadingAvatar) {
+            Toast.makeText(this, "Ảnh đang tải lên, vui lòng đợi chút", Toast.LENGTH_SHORT).show();
+            return;
+        }
         tilFullName.setError(null);
         tilUsername.setError(null);
         tilPhone.setError(null);
@@ -319,7 +392,7 @@ public class EditProfileActivity extends AppCompatActivity {
         String fullName = text(etFullName);
         String username = text(etUsername).toLowerCase(Locale.ROOT);
         String phone = text(etPhone).replaceAll("[\\s.-]", "");
-        if (phone.startsWith("+84")) phone = "0" + phone.substring(3); // chuẩn hoá giống Login
+        if (phone.startsWith("+84")) phone = "0" + phone.substring(3);
 
         boolean ok = true;
 
@@ -440,12 +513,14 @@ public class EditProfileActivity extends AppCompatActivity {
             pub.put("status", "active");
             pub.put("createdAt", FieldValue.serverTimestamp());
         }
-
+        if (newAvatarUrl != null) {
+            pub.put("avatarUrl", newAvatarUrl);
+        }
         Map<String, Object> address = new HashMap<>();
         address.put("street", text(etStreet));
         address.put("ward", text(actvWard));
         address.put("city", text(actvCity));
-        address.put("district", FieldValue.delete()); // xoá cấp quận/huyện cũ nếu có
+        address.put("district", FieldValue.delete());
 
         Map<String, Object> priv = new HashMap<>();
         priv.put("phone", phone);
@@ -461,7 +536,7 @@ public class EditProfileActivity extends AppCompatActivity {
         String email = currentUser.getEmail();
         if (email != null && !email.isEmpty()) {
             if (!originalPhone.isEmpty() && !originalPhone.equals(phone)) {
-                batch.delete(db.collection("phoneIndex").document(originalPhone)); // xoá số cũ
+                batch.delete(db.collection("phoneIndex").document(originalPhone));
             }
             if (!phone.isEmpty()) {
                 Map<String, Object> idx = new HashMap<>();
@@ -512,6 +587,33 @@ public class EditProfileActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void applySystemBarPadding() {
+        View root = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
+        View banner = findViewById(R.id.viewTopBanner);
+        View header = findViewById(R.id.layoutHeader);
+
+        final int left = root.getPaddingLeft();
+        final int right = root.getPaddingRight();
+        final int bottom = root.getPaddingBottom();
+        final int bannerHeight = banner.getLayoutParams().height;
+        final int headerTop = header.getPaddingTop();
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(left + bars.left, 0, right + bars.right, bottom + bars.bottom);
+
+            ViewGroup.LayoutParams lp = banner.getLayoutParams();
+            lp.height = bannerHeight + bars.top;
+            banner.setLayoutParams(lp);
+
+            header.setPadding(header.getPaddingLeft(), headerTop + bars.top,
+                    header.getPaddingRight(), header.getPaddingBottom());
+            return insets;
+        });
+
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(true);
+    }
 
     private void setupBottomNav() {
         findViewById(R.id.navHome).setOnClickListener(v -> leave(() -> {
@@ -521,7 +623,6 @@ public class EditProfileActivity extends AppCompatActivity {
             finish();
         }));
 
-        // Cá nhân: quay về màn Profile (Chỉnh sửa hồ sơ được mở từ Profile)
         findViewById(R.id.navProfile).setOnClickListener(v -> leave(this::finish));
 
         findViewById(R.id.navFavorites).setOnClickListener(v ->
@@ -530,17 +631,19 @@ public class EditProfileActivity extends AppCompatActivity {
         findViewById(R.id.navPost).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
 
-        findViewById(R.id.navMessages).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.navMessages).setOnClickListener(v -> leave(() -> {
+            startActivity(new Intent(this, ChatListActivity.class));
+            finish();
+        }));
     }
 
     private String currentFormSnapshot() {
         return TextUtils.join("|", new String[]{
                 text(etFullName), text(etUsername), text(etBio), text(etPhone),
                 getSelectedGender(), text(etDob),
-                text(etStreet), text(actvWard), text(actvCity)});
+                text(etStreet), text(actvWard), text(actvCity),
+                String.valueOf(newAvatarUrl)});
     }
-
 
     private static String text(TextView et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
