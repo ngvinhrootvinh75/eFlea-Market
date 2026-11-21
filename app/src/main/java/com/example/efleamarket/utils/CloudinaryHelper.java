@@ -15,14 +15,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tải ảnh lên Cloudinary (unsigned upload), trả về URL để lưu vào Firestore.
+ * Tải ảnh/video lên Cloudinary (unsigned upload), trả về URL để lưu vào Firestore.
  * Không chứa API secret nên có thể commit lên Git an toàn.
  * Theo MVVM: chỉ được gọi từ tầng Repository, KHÔNG gọi trực tiếp trong Activity.
  */
 public class CloudinaryHelper {
 
     private static final String CLOUD_NAME = "ie3ffytz";
-    private static final String UPLOAD_PRESET = "eflea_unsigned";
+    public static final String PRESET_DEFAULT = "eflea_unsigned";
+    public static final String PRESET_AVATAR  = "eflea_avatar";
+    public static final String PRESET_CHAT    = "eflea_chat";
 
     private static boolean initialized = false;
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -38,7 +40,7 @@ public class CloudinaryHelper {
         void onError(String message);
     }
 
-    /** Khởi tạo 1 lần duy nhất, gọi tự động trong uploadImage(). */
+    /** Khởi tạo 1 lần duy nhất, gọi tự động trong các hàm upload. */
     public static synchronized void init(Context context) {
         if (initialized) return;
         Map<String, Object> config = new HashMap<>();
@@ -47,46 +49,31 @@ public class CloudinaryHelper {
         try {
             MediaManager.init(context.getApplicationContext(), config);
         } catch (IllegalStateException ignored) {
-            // Đã init trước đó
         }
         initialized = true;
     }
 
-    /** Tải 1 ảnh. Kết quả trả về trên main thread. */
     public static void uploadImage(Context context, Uri uri, UploadListener listener) {
+        uploadImage(context, uri, PRESET_DEFAULT, listener);
+    }
+
+    public static void uploadImage(Context context, Uri uri, String preset, UploadListener listener) {
         init(context);
         MediaManager.get().upload(uri)
-                .unsigned(UPLOAD_PRESET)
-                .callback(new UploadCallback() {
-                    @Override public void onStart(String requestId) { }
-
-                    @Override public void onProgress(String requestId, long bytes, long totalBytes) { }
-
-                    @Override
-                    public void onSuccess(String requestId, Map resultData) {
-                        Object url = resultData.get("secure_url");
-                        mainHandler.post(() -> {
-                            if (url != null) listener.onSuccess(url.toString());
-                            else listener.onError("Không nhận được URL ảnh");
-                        });
-                    }
-
-                    @Override
-                    public void onError(String requestId, ErrorInfo error) {
-                        mainHandler.post(() -> listener.onError(error.getDescription()));
-                    }
-
-                    @Override
-                    public void onReschedule(String requestId, ErrorInfo error) {
-                        // Mất mạng: huỷ thay vì để SDK tự thử lại ngầm
-                        MediaManager.get().cancelRequest(requestId);
-                        mainHandler.post(() -> listener.onError("Mạng không ổn định, vui lòng thử lại"));
-                    }
-                })
+                .unsigned(preset)
+                .callback(callbackFor(listener))
                 .dispatch();
     }
 
-    /** Tải nhiều ảnh lần lượt, giữ đúng thứ tự (ảnh đầu tiên = ảnh bìa). */
+    public static void uploadMedia(Context context, Uri uri, UploadListener listener) {
+        init(context);
+        MediaManager.get().upload(uri)
+                .unsigned(PRESET_CHAT)
+                .option("resource_type", "auto")
+                .callback(callbackFor(listener))
+                .dispatch();
+    }
+
     public static void uploadImages(Context context, List<Uri> uris, MultiUploadListener listener) {
         uploadNext(context, uris, 0, new ArrayList<>(), listener);
     }
@@ -112,7 +99,34 @@ public class CloudinaryHelper {
         });
     }
 
-    /** Tạo link ảnh nhỏ cho danh sách: Cloudinary tự resize + nén. */
+    private static UploadCallback callbackFor(UploadListener listener) {
+        return new UploadCallback() {
+            @Override public void onStart(String requestId) { }
+
+            @Override public void onProgress(String requestId, long bytes, long totalBytes) { }
+
+            @Override
+            public void onSuccess(String requestId, Map resultData) {
+                Object url = resultData.get("secure_url");
+                mainHandler.post(() -> {
+                    if (url != null) listener.onSuccess(url.toString());
+                    else listener.onError("Không nhận được URL tệp");
+                });
+            }
+
+            @Override
+            public void onError(String requestId, ErrorInfo error) {
+                mainHandler.post(() -> listener.onError(error.getDescription()));
+            }
+
+            @Override
+            public void onReschedule(String requestId, ErrorInfo error) {
+                MediaManager.get().cancelRequest(requestId);
+                mainHandler.post(() -> listener.onError("Mạng không ổn định, vui lòng thử lại"));
+            }
+        };
+    }
+
     public static String thumbnail(String url, int width) {
         if (url == null || !url.contains("res.cloudinary.com") || !url.contains("/upload/")) return url;
         return url.replace("/upload/", "/upload/w_" + width + ",c_limit,q_auto,f_auto/");

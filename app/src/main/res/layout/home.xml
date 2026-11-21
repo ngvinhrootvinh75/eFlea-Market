@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#F5F7FA">
 
-    <!-- Nội dung cuộn chính của Trang chủ -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,23 +17,22 @@
             android:orientation="vertical"
             android:paddingBottom="24dp">
 
-            <!-- Container cho phần Header + Search có dải nền phía sau -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- Dải nền xanh kéo từ trên xuống bo 2 góc dưới -->
                 <View
+                    android:id="@+id/viewTopBanner"
                     android:layout_width="match_parent"
                     android:layout_height="132dp"
                     android:background="@drawable/bg_top_green_banner" />
 
                 <LinearLayout
+                    android:id="@+id/layoutHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- 1. Header trên cùng -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -78,7 +76,6 @@
                             app:tint="#0F766E" />
                     </RelativeLayout>
 
-                    <!-- 2. Thanh tìm kiếm -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardSearch"
                         android:layout_width="match_parent"
@@ -119,7 +116,6 @@
 
             </RelativeLayout>
 
-            <!-- 4. Tiêu đề Danh mục + Nút Xem tất cả -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -129,6 +125,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
                     android:text="DANH MỤC NGÀNH HÀNG"
                     android:textColor="#222222"
                     android:textSize="14sp"
@@ -145,7 +142,6 @@
                     android:textStyle="bold" />
             </RelativeLayout>
 
-            <!-- RecyclerView Danh mục (Cuộn ngang tiện lợi) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvCategories"
                 android:layout_width="match_parent"
@@ -155,7 +151,6 @@
                 android:orientation="horizontal"
                 android:paddingHorizontal="14dp" />
 
-            <!-- 5. Tiêu đề Gợi ý sản phẩm -->
             <TextView
                 android:id="@+id/tvSectionTitle"
                 android:layout_width="wrap_content"
@@ -167,7 +162,6 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <!-- ProgressBar tải sản phẩm -->
             <ProgressBar
                 android:id="@+id/pbLoading"
                 android:layout_width="wrap_content"
@@ -176,7 +170,6 @@
                 android:layout_marginTop="20dp"
                 android:indeterminateTint="#0F766E" />
 
-            <!-- Thông báo khi không có sản phẩm nào -->
             <TextView
                 android:id="@+id/tvEmptyProducts"
                 android:layout_width="wrap_content"
@@ -188,7 +181,6 @@
                 android:textSize="14sp"
                 android:visibility="gone" />
 
-            <!-- RecyclerView Sản phẩm (Lưới 2 cột chuẩn Shopee/Chợ Tốt) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvProducts"
                 android:layout_width="match_parent"
@@ -200,7 +192,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 6. Bottom Navigation Bar dưới đáy màn hình (5 nút) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"

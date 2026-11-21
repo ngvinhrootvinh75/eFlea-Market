@@ -23,11 +23,13 @@
                 android:layout_height="wrap_content">
 
                 <View
+                    android:id="@+id/viewTopBanner"
                     android:layout_width="match_parent"
                     android:layout_height="132dp"
                     android:background="@drawable/bg_top_green_banner" />
 
                 <LinearLayout
+                    android:id="@+id/layoutHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
@@ -81,17 +83,53 @@
                         android:orientation="vertical"
                         android:paddingHorizontal="20dp">
 
-                        <com.google.android.material.imageview.ShapeableImageView
-                            android:id="@+id/ivAvatar"
+                        <FrameLayout
                             android:layout_width="96dp"
-                            android:layout_height="96dp"
-                            android:background="#FFFFFF"
-                            android:padding="2dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/ic_person"
-                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                            app:strokeColor="#0F766E"
-                            app:strokeWidth="2dp" />
+                            android:layout_height="96dp">
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/ivAvatar"
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                android:background="#FFFFFF"
+                                android:padding="2dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_person"
+                                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                                app:strokeColor="#0F766E"
+                                app:strokeWidth="2dp" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/btnChangeAvatar"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:layout_gravity="bottom|end"
+                                app:cardBackgroundColor="#0F766E"
+                                app:cardCornerRadius="15dp"
+                                app:cardElevation="2dp"
+                                app:strokeColor="#FFFFFF"
+                                app:strokeWidth="2dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:contentDescription="Đổi ảnh đại diện"
+                                    android:gravity="center"
+                                    android:includeFontPadding="false"
+                                    android:text="+"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <ProgressBar
+                                android:id="@+id/pbAvatar"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:layout_gravity="center"
+                                android:indeterminateTint="#0F766E"
+                                android:visibility="gone" />
+                        </FrameLayout>
 
                     </LinearLayout>
 
@@ -419,7 +457,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ===== ĐÁY MÀN HÌNH: nút Hủy / Lưu + thanh điều hướng ===== -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

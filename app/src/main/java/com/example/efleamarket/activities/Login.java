@@ -48,7 +48,6 @@ public class Login extends AppCompatActivity {
     private static final String KEY_REMEMBER = "remember_me";
     private static final String KEY_LAST_ACCOUNT = "last_account"; // email/SĐT đã nhập lần trước
 
-    /** Email/SĐT người dùng vừa gõ (null nếu đăng nhập bằng Google/Facebook). */
     private String typedAccount = null;
 
     private EditText etEmail, etPassword;
@@ -73,10 +72,6 @@ public class Login extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         loadingDialog = new LoadingDialog(this);
 
-        // ===== GHI NHỚ ĐĂNG NHẬP =====
-        // Firebase tự lưu phiên đăng nhập trên máy:
-        //  - Có tích "Ghi nhớ" → vào thẳng Home
-        //  - Không tích       → đăng xuất phiên cũ, bắt đăng nhập lại
         if (auth.getCurrentUser() != null) {
             if (isRememberMe()) {
                 goToMain();
@@ -177,7 +172,6 @@ public class Login extends AppCompatActivity {
         String accountInput = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
 
-        // 1. Kiểm tra rỗng
         if (accountInput.isEmpty()) {
             etEmail.setError("Vui lòng nhập Email hoặc Số điện thoại");
             etEmail.requestFocus();
@@ -192,21 +186,16 @@ public class Login extends AppCompatActivity {
 
         btnLogin.setEnabled(false);
         loadingDialog.show();
-        typedAccount = accountInput; // để lưu lại nếu đăng nhập thành công
+        typedAccount = accountInput;
 
-        // 2. Kiểm tra xem người dùng nhập Email hay SĐT
         if (Patterns.EMAIL_ADDRESS.matcher(accountInput).matches()) {
-            // Trường hợp nhập EMAIL -> Đăng nhập trực tiếp
             signInFirebase(accountInput, password);
         } else if (Patterns.PHONE.matcher(accountInput).matches()) {
-            // Trường hợp nhập SỐ ĐIỆN THOẠI -> Tra email trong phoneIndex/{sđt}
-            // (users/ chỉ đọc được khi đã đăng nhập, còn phoneIndex cho phép tra từng số)
             String phoneKey = normalizePhone(accountInput);
             db.collection("phoneIndex").document(phoneKey)
                     .get()
                     .addOnCompleteListener(task -> {
                         if (!task.isSuccessful()) {
-                            // Lỗi mạng / rules -> báo riêng, không nhầm thành "chưa đăng ký"
                             btnLogin.setEnabled(true);
                             loadingDialog.dismiss();
                             Log.e(TAG, "phoneIndex lookup failed", task.getException());
@@ -222,11 +211,9 @@ public class Login extends AppCompatActivity {
                             etEmail.requestFocus();
                             return;
                         }
-                        // Tìm thấy tài khoản -> đăng nhập bằng email tương ứng
                         signInFirebase(emailFound, password);
                     });
         } else {
-            // Định dạng không phải Email cũng không phải SĐT
             btnLogin.setEnabled(true);
             loadingDialog.dismiss();
             etEmail.setError("Định dạng Email hoặc Số điện thoại không đúng");
@@ -234,14 +221,12 @@ public class Login extends AppCompatActivity {
         }
     }
 
-    // Hàm phụ để tái sử dụng việc gọi auth.signInWithEmailAndPassword
     private void signInFirebase(String email, String password) {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     btnLogin.setEnabled(true);
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                         onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập thất bại: " +
@@ -266,7 +251,6 @@ public class Login extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
                         onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập Firebase bằng Google thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
@@ -282,7 +266,6 @@ public class Login extends AppCompatActivity {
                     btnFacebookLogin.setEnabled(true);
                     loadingDialog.dismiss();
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Đăng nhập Facebook thành công!", Toast.LENGTH_SHORT).show();
                         onLoginSuccess();
                     } else {
                         Toast.makeText(this, "Đăng nhập thất bại: " + (task.getException() != null ? task.getException().getMessage() : "Lỗi"), Toast.LENGTH_LONG).show();
