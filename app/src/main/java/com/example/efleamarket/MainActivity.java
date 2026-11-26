@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.example.efleamarket.activities.PostProductActivity;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -61,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Bơm dữ liệu mẫu (chỉ chạy nếu database trống)
         DataSeeder.seedProducts(this);
+    }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        // Quay về từ màn hình khác (VD: vừa đăng tin) -> tải lại danh sách
+        viewModel.refresh();
     }
 
     /** Chừa khoảng trống cho thanh trạng thái (trên) và thanh điều hướng hệ thống (dưới). */
@@ -143,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
 
         findViewById(R.id.navPost).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, PostProductActivity.class)));
 
         findViewById(R.id.navMessages).setOnClickListener(v ->
                 Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());

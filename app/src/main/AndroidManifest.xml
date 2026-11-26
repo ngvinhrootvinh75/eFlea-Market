@@ -88,6 +88,11 @@
             android:name=".activities.ProductDetailActivity"
             android:exported="false" />
 
+        <!-- Màn hình đăng tin bán -->
+        <activity
+            android:name=".activities.PostProductActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
