@@ -187,7 +187,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Khu vực (VD: Quận 10, TP.HCM)">
+                    android:hint="Khu vực ">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etLocation"

@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
@@ -199,7 +200,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnCreateDeal).setOnClickListener(v -> {
-            Toast.makeText(this, "Chức năng Giao dịch đang phát triển", Toast.LENGTH_SHORT).show();
+            String myUid = FirebaseAuth.getInstance().getUid();
+            if (product == null || myUid == null) return;
+            CreateTransactionActivity.start(this, product.getId(), myUid, product.getSellerId());
         });
 
         findViewById(R.id.btnEditProduct).setOnClickListener(v ->
