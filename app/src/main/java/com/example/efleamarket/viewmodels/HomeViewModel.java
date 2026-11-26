@@ -24,6 +24,7 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<String> error = new MutableLiveData<>();
 
     private boolean loaded = false;
+    private String currentCategoryId = null; // null = tất cả
 
     public LiveData<List<Category>> getCategories() { return categories; }
     public LiveData<List<Product>> getProducts() { return products; }
@@ -37,6 +38,12 @@ public class HomeViewModel extends ViewModel {
         loaded = true;
         loadCategories();
         showAll();
+    }
+
+    /** Tải lại danh sách đang xem (ví dụ khi quay về từ màn hình Đăng tin). */
+    public void refresh() {
+        if (!loaded) return;
+        loadProducts(currentCategoryId);
     }
 
     public void showAll() {
@@ -59,6 +66,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     private void loadProducts(String categoryId) {
+        currentCategoryId = categoryId;
         loading.setValue(true);
         repo.getSellingProducts(categoryId, new ProductRepository.Callback<List<Product>>() {
             @Override

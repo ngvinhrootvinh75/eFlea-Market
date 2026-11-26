@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.efleamarket.activities.PostProductActivity;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,6 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Bơm dữ liệu mẫu (chỉ chạy nếu database trống)
         DataSeeder.seedProducts(this);
+    }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        // Quay về từ màn hình khác (VD: vừa đăng tin) -> tải lại danh sách
+        viewModel.refresh();
     }
 
     private void applySystemBarPadding() {
@@ -162,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
 
         findViewById(R.id.navPost).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, PostProductActivity.class)));
 
         findViewById(R.id.navMessages).setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, ChatListActivity.class)));
