@@ -26,9 +26,12 @@ import com.bumptech.glide.Glide;
 import com.example.efleamarket.R;
 import com.example.efleamarket.adapters.MessageAdapter;
 import com.example.efleamarket.models.Chat;
+import com.example.efleamarket.models.Transaction;
 import com.example.efleamarket.utils.ChatFormat;
 import com.example.efleamarket.utils.CloudinaryHelper;
 import com.example.efleamarket.viewmodels.ChatViewModel;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ChatActivity extends AppCompatActivity {
@@ -53,6 +56,9 @@ public class ChatActivity extends AppCompatActivity {
     private TextView tvName, tvProductTitle, tvProductPrice;
     private ImageView ivAvatar, ivProduct;
     private View btnAttach, layoutUploading;
+    private MaterialCardView cardTxBanner;
+    private TextView tvTxBanner, tvTxBannerAction;
+    private MaterialButton btnCreateTransaction;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private String myUid;
     private Chat currentChat;
@@ -113,6 +119,10 @@ public class ChatActivity extends AppCompatActivity {
         etMessage = findViewById(R.id.etMessage);
         btnAttach = findViewById(R.id.btnAttach);
         layoutUploading = findViewById(R.id.layoutUploading);
+        cardTxBanner = findViewById(R.id.cardTxBanner);
+        tvTxBanner = findViewById(R.id.tvTxBanner);
+        tvTxBannerAction = findViewById(R.id.tvTxBannerAction);
+        btnCreateTransaction = findViewById(R.id.btnCreateTransaction);
     }
 
     private void applyInsets() {
@@ -139,6 +149,8 @@ public class ChatActivity extends AppCompatActivity {
         vm.getMessages().observe(this, list -> adapter.submitList(list, () -> {
             if (list != null && !list.isEmpty()) rvMessages.scrollToPosition(list.size() - 1);
         }));
+
+        vm.getTransaction().observe(this, this::bindTransaction);
 
         vm.getUploading().observe(this, up -> {
             boolean u = Boolean.TRUE.equals(up);
@@ -185,8 +197,14 @@ public class ChatActivity extends AppCompatActivity {
             startActivity(i);
         });
 
-        findViewById(R.id.btnCreateTransaction).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Giao dịch đang phát triển", Toast.LENGTH_SHORT).show());
+        btnCreateTransaction.setOnClickListener(v -> openTransaction());
+        cardTxBanner.setOnClickListener(v -> openTransaction());
+    }
+
+    private void openTransaction() {
+        if (currentChat == null) return;
+        CreateTransactionActivity.start(this,
+                currentChat.getProductId(), currentChat.getBuyerId(), currentChat.getSellerId());
     }
 
     private void bindHeader(Chat c) {
@@ -205,5 +223,19 @@ public class ChatActivity extends AppCompatActivity {
                 .load(CloudinaryHelper.thumbnail(c.getProductImage(), 150))
                 .placeholder(R.drawable.ic_shopping_cart).error(R.drawable.ic_shopping_cart)
                 .centerCrop().into(ivProduct);
+    }
+
+    private void bindTransaction(Transaction t) {
+        if (t == null) {
+            cardTxBanner.setVisibility(View.GONE);
+            btnCreateTransaction.setText("Tạo giao dịch");
+            return;
+        }
+        btnCreateTransaction.setText("Xem giao dịch");
+        cardTxBanner.setVisibility(View.VISIBLE);
+        cardTxBanner.setCardBackgroundColor(t.getStatusBgColor());
+        tvTxBanner.setTextColor(t.getStatusTextColor());
+        tvTxBannerAction.setTextColor(t.getStatusTextColor());
+        tvTxBanner.setText("Giao dịch: " + t.getStatusLabel() + " · " + ChatFormat.price(t.getOfferedPrice()));
     }
 }

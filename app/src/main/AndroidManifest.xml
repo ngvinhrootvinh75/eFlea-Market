@@ -108,6 +108,11 @@
             android:name=".activities.MediaViewerActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activities.CreateTransactionActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

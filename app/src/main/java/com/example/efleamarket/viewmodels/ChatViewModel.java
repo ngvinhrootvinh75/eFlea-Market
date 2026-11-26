@@ -15,9 +15,14 @@ import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import com.example.efleamarket.models.Transaction;
+import com.example.efleamarket.repositories.TransactionRepository;
 
 public class ChatViewModel extends ViewModel {
     private final ChatRepository repo = ChatRepository.getInstance();
+    private final TransactionRepository txRepo = TransactionRepository.getInstance();
+    private final MutableLiveData<Transaction> transaction = new MutableLiveData<>();
+    private ListenerRegistration txReg;
     private final MutableLiveData<Chat> chat = new MutableLiveData<>();
     private final MutableLiveData<List<Message>> messages = new MutableLiveData<>();
     private final MutableLiveData<String> error = new MutableLiveData<>();
@@ -37,7 +42,7 @@ public class ChatViewModel extends ViewModel {
     public LiveData<Boolean> getCloseScreen() { return closeScreen; }
     public LiveData<Boolean> getUploading() { return uploading; }
     public LiveData<List<String>> getSuggestions() { return suggestions; }
-
+    public LiveData<Transaction> getTransaction() { return transaction; }
     public void openExisting(String id) {
         if (started) return;
         started = true;
@@ -69,6 +74,10 @@ public class ChatViewModel extends ViewModel {
                 publishMessages();
             }
             @Override public void onError(String message) { error.setValue(message); }
+        });
+        txReg = txRepo.listenTransaction(id, new TransactionRepository.Callback<Transaction>() {
+            @Override public void onSuccess(Transaction t) { transaction.setValue(t); }
+            @Override public void onError(String message) { }
         });
     }
 
@@ -115,5 +124,6 @@ public class ChatViewModel extends ViewModel {
     @Override protected void onCleared() {
         if (chatReg != null) chatReg.remove();
         if (msgReg != null) msgReg.remove();
+        if (txReg != null) txReg.remove();
     }
 }
