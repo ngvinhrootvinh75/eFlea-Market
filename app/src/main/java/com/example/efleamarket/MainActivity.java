@@ -8,9 +8,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.example.efleamarket.activities.PostProductActivity;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -28,6 +31,9 @@ import com.example.efleamarket.viewmodels.HomeViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.example.efleamarket.activities.ChatListActivity;
+import com.example.efleamarket.activities.ProductDetailActivity;
+import com.example.efleamarket.activities.ProfileActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
 
@@ -69,18 +76,31 @@ public class MainActivity extends AppCompatActivity {
         viewModel.refresh();
     }
 
-    /** Chừa khoảng trống cho thanh trạng thái (trên) và thanh điều hướng hệ thống (dưới). */
     private void applySystemBarPadding() {
         View root = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
+        View banner = findViewById(R.id.viewTopBanner);
+        View header = findViewById(R.id.layoutHeader);
+
         final int left = root.getPaddingLeft();
-        final int top = root.getPaddingTop();
         final int right = root.getPaddingRight();
         final int bottom = root.getPaddingBottom();
+        final int bannerHeight = banner.getLayoutParams().height;
+        final int headerTop = header.getPaddingTop();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(left + bars.left, top + bars.top, right + bars.right, bottom + bars.bottom);
+            v.setPadding(left + bars.left, 0, right + bars.right, bottom + bars.bottom);
+
+            ViewGroup.LayoutParams lp = banner.getLayoutParams();
+            lp.height = bannerHeight + bars.top;
+            banner.setLayoutParams(lp);
+
+            header.setPadding(header.getPaddingLeft(), headerTop + bars.top,
+                    header.getPaddingRight(), header.getPaddingBottom());
             return insets;
         });
+
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(true);
     }
 
     private void initViews() {
@@ -152,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, PostProductActivity.class)));
 
         findViewById(R.id.navMessages).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Tin nhắn đang phát triển", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(MainActivity.this, ChatListActivity.class)));
 
         findViewById(R.id.navProfile).setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, ProfileActivity.class)));

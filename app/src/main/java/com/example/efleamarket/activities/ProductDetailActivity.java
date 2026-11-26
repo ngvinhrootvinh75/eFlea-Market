@@ -9,8 +9,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
@@ -50,6 +55,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.product_detail);
 
@@ -63,6 +69,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(ProductDetailViewModel.class);
 
         bindViews();
+        applySystemBarInsets();
         setupImagePager();
         setupEvents();
         observeViewModel();
@@ -90,6 +97,44 @@ public class ProductDetailActivity extends AppCompatActivity {
         pbLoading = findViewById(R.id.pbLoading);
     }
 
+    private void applySystemBarInsets() {
+        View root = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
+        View btnBack = findViewById(R.id.btnBack);
+        View btnFavorite = findViewById(R.id.btnFavorite);
+
+        final int backTop = ((ViewGroup.MarginLayoutParams) btnBack.getLayoutParams()).topMargin;
+        final int favTop = ((ViewGroup.MarginLayoutParams) btnFavorite.getLayoutParams()).topMargin;
+        final int contentBottom = layoutContent.getPaddingBottom();
+        final int buyerBottom = layoutBuyerActions.getPaddingBottom();
+        final int ownerBottom = layoutOwnerActions.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, 0, bars.right, 0);
+
+            setTopMargin(btnBack, backTop + bars.top);
+            setTopMargin(btnFavorite, favTop + bars.top);
+
+            setBottomPadding(layoutContent, contentBottom + bars.bottom);
+            setBottomPadding(layoutBuyerActions, buyerBottom + bars.bottom);
+            setBottomPadding(layoutOwnerActions, ownerBottom + bars.bottom);
+            return insets;
+        });
+
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(false);
+    }
+
+    private static void setTopMargin(View view, int top) {
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        lp.topMargin = top;
+        view.setLayoutParams(lp);
+    }
+
+    private static void setBottomPadding(View view, int bottom) {
+        view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), bottom);
+    }
+
     private void observeViewModel() {
         viewModel.getLoading().observe(this, isLoading -> {
             boolean loading = Boolean.TRUE.equals(isLoading);
@@ -113,7 +158,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
     }
 
-    // Ảnh vuốt ngang từng tấm một
     private void setupImagePager() {
         imageAdapter = new ImagePagerAdapter(imageUrls);
         LinearLayoutManager lm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -150,17 +194,11 @@ public class ProductDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
 
         findViewById(R.id.btnChat).setOnClickListener(v -> {
-            // TODO (tuần 4 - ghép với B): mở màn hình chat
-            // Intent i = new Intent(this, ChatActivity.class);
-            // i.putExtra("productId", product.getId());
-            // i.putExtra("sellerId", product.getSellerId());
-            // startActivity(i);
-            Toast.makeText(this, "Chức năng Nhắn tin đang phát triển", Toast.LENGTH_SHORT).show();
+            if (product == null) return;
+            ChatActivity.start(this, product.getId(), product.getSellerId());
         });
 
         findViewById(R.id.btnCreateDeal).setOnClickListener(v -> {
-            // TODO (tuần 4 - ghép với B): mở màn hình tạo giao dịch
-            // truyền productId, buyerId (người đang đăng nhập), sellerId
             Toast.makeText(this, "Chức năng Giao dịch đang phát triển", Toast.LENGTH_SHORT).show();
         });
 
@@ -179,14 +217,12 @@ public class ProductDetailActivity extends AppCompatActivity {
                 ? "Đăng ngày " + dateFormatter.format(product.getCreatedAt()) : "");
         tvDescription.setText(orDefault(product.getDescription(), "Người bán chưa thêm mô tả."));
 
-        // Ảnh
         imageUrls.clear();
         if (product.getImages() != null) imageUrls.addAll(product.getImages());
         if (imageUrls.isEmpty() && product.getCoverImage() != null) imageUrls.add(product.getCoverImage());
         imageAdapter.notifyDataSetChanged();
         updateCounter(0);
 
-        // Trạng thái tin đăng
         String status = product.getStatus();
         boolean selling = status == null || Product.STATUS_SELLING.equals(status);
         if (selling) {
@@ -196,11 +232,9 @@ public class ProductDetailActivity extends AppCompatActivity {
             tvStatus.setText(statusLabel(status));
         }
 
-        // Người bán mặc định (khi chưa đọc được users)
         tvSellerName.setText(orDefault(product.getSellerName(), "Người bán"));
         tvSellerRating.setText("Chưa có đánh giá");
 
-        // Chủ tin thấy nút "Sửa", người khác thấy "Nhắn tin / Tạo giao dịch"
         boolean isOwner = viewModel.isOwner(product);
         layoutOwnerActions.setVisibility(isOwner ? View.VISIBLE : View.GONE);
         layoutBuyerActions.setVisibility(!isOwner && selling ? View.VISIBLE : View.GONE);
@@ -247,7 +281,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         return value != null && !value.trim().isEmpty() ? value : fallback;
     }
 
-    // ===== Adapter ảnh vuốt ngang =====
     private static class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
         private final List<String> urls;
 
