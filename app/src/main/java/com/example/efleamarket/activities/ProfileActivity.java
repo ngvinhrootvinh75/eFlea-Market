@@ -113,6 +113,10 @@ public class ProfileActivity extends AppCompatActivity {
             btnMessage.setVisibility(View.GONE);
             btnEdit.setOnClickListener(v -> openEditProfile());
             btnLogout.setOnClickListener(v -> logout());
+            View cardMyProducts = findViewById(R.id.cardMyProducts);
+            cardMyProducts.setVisibility(View.VISIBLE);
+            cardMyProducts.setOnClickListener(v ->
+                    startActivity(new Intent(this, MyProductsActivity.class)));
         } else {
             btnEdit.setVisibility(View.GONE);
             btnLogout.setVisibility(View.GONE);

@@ -15,7 +15,7 @@ import com.example.efleamarket.utils.ImageCompressor;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
+import java.util.Collections;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,5 +188,44 @@ public class ProductRepository {
                 new File(uri.getPath()).delete();
             }
         }
+    }
+    /** Tất cả tin của một người bán (mọi trạng thái), mới nhất trước. */
+    public void getProductsBySeller(String sellerId, Callback<List<Product>> cb) {
+        db.collection("products")
+                .whereEqualTo("sellerId", sellerId)
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    List<Product> list = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        Product p = doc.toObject(Product.class);
+                        p.setId(doc.getId());
+                        list.add(p);
+                    }
+                    // Sắp xếp ở phía app để khỏi phải tạo index trên Firestore
+                    Collections.sort(list, (a, b) -> {
+                        if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+                        if (a.getCreatedAt() == null) return 1;
+                        if (b.getCreatedAt() == null) return -1;
+                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                    });
+                    cb.onSuccess(list);
+                })
+                .addOnFailureListener(e -> cb.onError(e.getMessage()));
+    }
+
+    /** Đổi trạng thái tin (selling / sold ...). */
+    public void updateStatus(String productId, String status, Callback<Void> cb) {
+        db.collection("products").document(productId)
+                .update("status", status)
+                .addOnSuccessListener(v -> cb.onSuccess(null))
+                .addOnFailureListener(e -> cb.onError(e.getMessage()));
+    }
+
+    /** Xoá tin. Ảnh trên Cloudinary vẫn còn (xoá ảnh cần webservice). */
+    public void deleteProduct(String productId, Callback<Void> cb) {
+        db.collection("products").document(productId)
+                .delete()
+                .addOnSuccessListener(v -> cb.onSuccess(null))
+                .addOnFailureListener(e -> cb.onError(e.getMessage()));
     }
 }
