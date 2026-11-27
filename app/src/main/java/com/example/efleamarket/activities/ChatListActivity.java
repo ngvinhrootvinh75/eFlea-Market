@@ -129,7 +129,7 @@ public class ChatListActivity extends AppCompatActivity {
                 Toast.makeText(this, "Chức năng Yêu thích đang phát triển", Toast.LENGTH_SHORT).show());
 
         findViewById(R.id.navPost).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Đăng tin bán đang phát triển", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, PostProductActivity.class)));
 
         findViewById(R.id.navMessages).setOnClickListener(v -> { });
 
