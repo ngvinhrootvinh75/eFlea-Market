@@ -23,6 +23,7 @@ import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
 import com.example.efleamarket.adapters.ChatListAdapter;
 import com.example.efleamarket.models.Chat;
+import com.example.efleamarket.utils.BadgeHelper;
 import com.example.efleamarket.viewmodels.ChatListViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,7 +44,8 @@ public class ChatListActivity extends AppCompatActivity {
         setupBottomNav();
 
         findViewById(R.id.btnNotification).setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng Thông báo đang phát triển", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, NotificationsActivity.class)));
+        BadgeHelper.bind(this);
 
         View fabAssistant = findViewById(R.id.fabAssistant);
         fabAssistant.setOnClickListener(v ->
@@ -57,8 +59,8 @@ public class ChatListActivity extends AppCompatActivity {
         ChatListViewModel vm = new ViewModelProvider(this).get(ChatListViewModel.class);
 
         ChatListAdapter adapter = new ChatListAdapter(myUid,
-                chat -> ChatActivity.openChat(this, chat.getId()),
-                chat -> confirmDelete(vm, chat, myUid));
+                group -> openGroup(group, myUid),
+                group -> confirmDelete(vm, group, myUid));
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(adapter);
 
@@ -67,7 +69,7 @@ public class ChatListActivity extends AppCompatActivity {
         vm.getLoading().observe(this, l ->
                 pb.setVisibility(Boolean.TRUE.equals(l) ? View.VISIBLE : View.GONE));
         vm.getChats().observe(this, list -> {
-            adapter.submitList(list);
+            adapter.submitList(ChatListAdapter.group(list, myUid));
             boolean loading = Boolean.TRUE.equals(vm.getLoading().getValue());
             tvEmpty.setVisibility(!loading && (list == null || list.isEmpty()) ? View.VISIBLE : View.GONE);
         });
@@ -78,14 +80,37 @@ public class ChatListActivity extends AppCompatActivity {
         });
     }
 
-    private void confirmDelete(ChatListViewModel vm, Chat chat, String myUid) {
+    private void openGroup(ChatListAdapter.Group group, String myUid) {
+        if (group.chats.size() == 1) {
+            ChatActivity.openChat(this, group.latest().getId());
+            return;
+        }
+        String[] items = new String[group.chats.size()];
+        for (int i = 0; i < group.chats.size(); i++) {
+            Chat c = group.chats.get(i);
+            int unread = c.getUnreadFor(myUid);
+            items[i] = c.getProductTitle() + (unread > 0 ? "  (" + unread + " tin mới)" : "");
+        }
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Trò chuyện với " + group.latest().getOtherName(myUid))
+                .setItems(items, (d, which) -> ChatActivity.openChat(this, group.chats.get(which).getId()))
+                .setNegativeButton("Đóng", null)
+                .show();
+    }
+
+    private void confirmDelete(ChatListViewModel vm, ChatListAdapter.Group group, String myUid) {
+        int n = group.chats.size();
+        String name = group.latest().getOtherName(myUid);
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Xóa cuộc trò chuyện?")
-                .setMessage("Cuộc trò chuyện với " + chat.getOtherName(myUid)
-                        + " về \"" + chat.getProductTitle() + "\" sẽ bị xóa ở phía bạn. "
-                        + "Người kia vẫn xem được. Nếu có tin nhắn mới, cuộc trò chuyện sẽ hiện lại.")
+                .setMessage((n == 1
+                        ? "Cuộc trò chuyện với " + name + " về \"" + group.latest().getProductTitle() + "\""
+                        : "Toàn bộ " + n + " cuộc trò chuyện với " + name)
+                        + " sẽ bị xóa ở phía bạn. Người kia vẫn xem được. Nếu có tin nhắn mới, cuộc trò chuyện sẽ hiện lại.")
                 .setNegativeButton("Hủy", null)
-                .setPositiveButton("Xóa", (d, w) -> vm.deleteChat(chat))
+                .setPositiveButton("Xóa", (d, w) -> {
+                    for (Chat c : group.chats) vm.deleteChat(c);
+                })
                 .show();
     }
 

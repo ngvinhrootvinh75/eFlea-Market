@@ -236,6 +236,13 @@ public class ChatActivity extends AppCompatActivity {
         cardTxBanner.setCardBackgroundColor(t.getStatusBgColor());
         tvTxBanner.setTextColor(t.getStatusTextColor());
         tvTxBannerAction.setTextColor(t.getStatusTextColor());
-        tvTxBanner.setText("Giao dịch: " + t.getStatusLabel() + " · " + ChatFormat.price(t.getOfferedPrice()));
+        if (t.hasMeeting()) {
+            tvTxBanner.setText(" " + ChatFormat.dateTime(t.getMeetingTime()) + " · " + t.getMeetingPlace().getName());
+        } else if (Transaction.STATUS_SHIPPING.equals(t.getStatus())) {
+            tvTxBanner.setText(" " + t.getShipStepLabel()
+                    + (t.hasTrackingCode() ? " · " + t.getCarrier() + " " + t.getTrackingCode() : ""));
+        } else {
+            tvTxBanner.setText("Giao dịch: " + t.getStatusLabel() + " · " + ChatFormat.price(t.getOfferedPrice()));
+        }
     }
 }

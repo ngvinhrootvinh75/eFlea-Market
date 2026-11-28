@@ -234,6 +234,326 @@
                                 app:cornerRadius="12dp" />
                         </LinearLayout>
 
+                        <LinearLayout
+                            android:id="@+id/layoutDelivery"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSchedule"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="#0F766E"
+                                android:text="HẸN GẶP"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                app:cornerRadius="12dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnShip"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="#0F766E"
+                                android:text="GIAO TẬN NƠI"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                app:cornerRadius="12dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/cardShipForm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="#ECF7F4"
+                            android:orientation="vertical"
+                            android:padding="12dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Giao tận nơi"
+                                android:textColor="#0F766E"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvShipFormName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Người nhận: …"
+                                android:textColor="#0F172A"
+                                android:textSize="14sp" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:hint="Số điện thoại"
+                                android:textColorHint="#64748B"
+                                app:boxBackgroundColor="#FFFFFF"
+                                app:boxStrokeColor="#0F766E"
+                                app:boxStrokeWidthFocused="2dp"
+                                app:cursorColor="#0F766E"
+                                app:hintTextColor="#0F766E">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etShipFormPhone"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="phone"
+                                    android:maxLength="11" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPickAddress"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:backgroundTint="#FFFFFF"
+                                android:gravity="start|center_vertical"
+                                android:minHeight="52dp"
+                                android:text="Chọn địa chỉ trên bản đồ"
+                                android:textAllCaps="false"
+                                android:textColor="#0F766E"
+                                app:cornerRadius="10dp"
+                                app:strokeColor="#0F766E"
+                                app:strokeWidth="1dp" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnShipFormCancel"
+                                    style="?attr/materialButtonOutlinedStyle"
+                                    android:layout_width="0dp"
+                                    android:layout_height="46dp"
+                                    android:layout_weight="1"
+                                    android:text="QUAY LẠI"
+                                    android:textColor="#64748B"
+                                    app:cornerRadius="10dp"
+                                    app:strokeColor="#CBD5E1"
+                                    app:strokeWidth="1dp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnShipFormSubmit"
+                                    android:layout_width="0dp"
+                                    android:layout_height="46dp"
+                                    android:layout_marginStart="10dp"
+                                    android:layout_weight="1"
+                                    android:backgroundTint="#0F766E"
+                                    android:text="XÁC NHẬN"
+                                    android:textColor="#FFFFFF"
+                                    android:textStyle="bold"
+                                    app:cornerRadius="10dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/cardMeeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="#EFF6FF"
+                            android:orientation="vertical"
+                            android:padding="12dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Điểm hẹn"
+                                android:textColor="#1D4ED8"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvMeetingName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textColor="#0F172A"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvMeetingTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="#334155"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/tvMeetingCountdown"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="#1D4ED8"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnDirections"
+                                    android:layout_width="0dp"
+                                    android:layout_height="44dp"
+                                    android:layout_weight="1"
+                                    android:backgroundTint="#1D4ED8"
+                                    android:text="CHỈ ĐƯỜNG"
+                                    android:textColor="#FFFFFF"
+                                    android:textStyle="bold"
+                                    app:cornerRadius="10dp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnChangeMeeting"
+                                    style="?attr/materialButtonOutlinedStyle"
+                                    android:layout_width="0dp"
+                                    android:layout_height="44dp"
+                                    android:layout_marginStart="10dp"
+                                    android:layout_weight="1"
+                                    android:text="ĐỔI ĐIỂM HẸN"
+                                    android:textColor="#1D4ED8"
+                                    android:textStyle="bold"
+                                    app:cornerRadius="10dp"
+                                    app:strokeColor="#93C5FD"
+                                    app:strokeWidth="1dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/cardShipping"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="#ECF7F4"
+                            android:orientation="vertical"
+                            android:padding="12dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Giao hàng từ xa"
+                                android:textColor="#0F766E"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvShipAddress"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:background="?attr/selectableItemBackground"
+                                android:lineSpacingExtra="2dp"
+                                android:textColor="#0F172A"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/tvShipTracking"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textColor="#0F766E"
+                                android:textIsSelectable="true"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:visibility="gone" />
+
+                            <LinearLayout
+                                android:id="@+id/layoutTimeline"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:orientation="vertical" />
+
+                            <TextView
+                                android:id="@+id/tvJourneyTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="Hành trình đơn hàng"
+                                android:textColor="#334155"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:visibility="gone" />
+
+                            <LinearLayout
+                                android:id="@+id/layoutJourney"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:orientation="vertical" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEnterTracking"
+                                android:layout_width="match_parent"
+                                android:layout_height="44dp"
+                                android:layout_marginTop="10dp"
+                                android:backgroundTint="#0F766E"
+                                android:text="XÁC NHẬN ĐÃ GỬI HÀNG"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                app:cornerRadius="10dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddTracking"
+                                android:layout_width="match_parent"
+                                android:layout_height="44dp"
+                                android:layout_marginTop="10dp"
+                                android:backgroundTint="#0F766E"
+                                android:text="CẬP NHẬT HÀNH TRÌNH"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                app:cornerRadius="10dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMarkDelivering"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="44dp"
+                                android:layout_marginTop="10dp"
+                                android:text="ĐƠN ĐANG ĐƯỢC GIAO"
+                                android:textColor="#0F766E"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                app:cornerRadius="10dp"
+                                app:strokeColor="#99D5CC"
+                                app:strokeWidth="1dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnReceived"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:layout_marginTop="10dp"
+                                android:backgroundTint="#0F766E"
+                                android:text="ĐÃ NHẬN ĐƯỢC HÀNG"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                android:visibility="gone"
+                                app:cornerRadius="12dp" />
+                        </LinearLayout>
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelTx"
                             style="?attr/materialButtonOutlinedStyle"
