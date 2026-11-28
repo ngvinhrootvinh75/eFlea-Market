@@ -25,6 +25,7 @@ import com.example.efleamarket.models.Chat;
 import com.example.efleamarket.models.Product;
 import com.example.efleamarket.repositories.ChatRepository;
 import com.example.efleamarket.utils.AvatarUtils;
+import com.example.efleamarket.utils.BadgeHelper;
 import com.example.efleamarket.utils.ChatFormat;
 import com.example.efleamarket.utils.CloudinaryHelper;
 import com.facebook.login.LoginManager;
@@ -73,6 +74,7 @@ public class ProfileActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile);
+        BadgeHelper.bind(this);
         applySystemBarPadding();
 
         ivAvatar = findViewById(R.id.ivAvatar);
@@ -356,7 +358,6 @@ public class ProfileActivity extends AppCompatActivity {
         findViewById(R.id.navMessages).setOnClickListener(v ->
                 startActivity(new Intent(this, ChatListActivity.class)));
 
-        // MỚI: đang xem hồ sơ người khác thì bấm "Cá nhân" mở hồ sơ của mình
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             if (!isOwner) startActivity(new Intent(this, ProfileActivity.class));
         });
@@ -378,7 +379,6 @@ public class ProfileActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
 
     private void setupSellerProducts() {
         findViewById(R.id.layoutSellerProducts).setVisibility(View.VISIBLE);
@@ -423,7 +423,6 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     private void openChatWithTarget() {
         btnMessage.setEnabled(false);

@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.example.efleamarket.activities.PostProductActivity;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,20 +19,21 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.efleamarket.activities.ChatListActivity;
+import com.example.efleamarket.activities.NotificationsActivity;
+import com.example.efleamarket.activities.PostProductActivity;
 import com.example.efleamarket.activities.ProductDetailActivity;
 import com.example.efleamarket.activities.ProfileActivity;
 import com.example.efleamarket.adapters.CategoryAdapter;
 import com.example.efleamarket.adapters.ProductAdapter;
 import com.example.efleamarket.models.Category;
 import com.example.efleamarket.models.Product;
+import com.example.efleamarket.utils.BadgeHelper;
 import com.example.efleamarket.utils.DataSeeder;
 import com.example.efleamarket.viewmodels.HomeViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.example.efleamarket.activities.ChatListActivity;
-import com.example.efleamarket.activities.ProductDetailActivity;
-import com.example.efleamarket.activities.ProfileActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
-
+        BadgeHelper.bind(this);
         applySystemBarPadding();
 
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         // Bơm dữ liệu mẫu (chỉ chạy nếu database trống)
         DataSeeder.seedProducts(this);
     }
+
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -162,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupEvents() {
         btnViewAllCategories.setOnClickListener(v -> viewModel.showAll());
+
+        findViewById(R.id.btnNotification).setOnClickListener(v ->
+                startActivity(new Intent(this, NotificationsActivity.class)));
 
         findViewById(R.id.navHome).setOnClickListener(v -> viewModel.showAll());
 

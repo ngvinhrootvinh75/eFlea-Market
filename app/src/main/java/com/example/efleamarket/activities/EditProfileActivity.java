@@ -2,16 +2,21 @@ package com.example.efleamarket.activities;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -22,8 +27,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.bumptech.glide.Glide;
 import com.example.efleamarket.MainActivity;
 import com.example.efleamarket.R;
+import com.example.efleamarket.repositories.UserRepository;
 import com.example.efleamarket.utils.AccentInsensitiveAdapter;
 import com.example.efleamarket.utils.AvatarUtils;
+import com.example.efleamarket.utils.BadgeHelper;
 import com.example.efleamarket.utils.LoadingDialog;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -49,20 +56,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import android.net.Uri;
-import android.widget.ProgressBar;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
-import com.example.efleamarket.repositories.UserRepository;
 
 public class EditProfileActivity extends AppCompatActivity {
 
@@ -108,6 +108,7 @@ public class EditProfileActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_profile);
+        BadgeHelper.bind(this);
         applySystemBarPadding();
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -494,7 +495,6 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void writeData(String fullName, String username, String phone) {
-        // Thông tin công khai
         Map<String, Object> pub = new HashMap<>();
         pub.put("uid", currentUser.getUid());
         pub.put("fullName", fullName);

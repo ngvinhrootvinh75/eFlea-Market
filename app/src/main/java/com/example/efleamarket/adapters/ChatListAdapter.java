@@ -18,18 +18,74 @@ import com.example.efleamarket.models.Chat;
 import com.example.efleamarket.utils.ChatFormat;
 import com.example.efleamarket.utils.CloudinaryHelper;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-public class ChatListAdapter extends ListAdapter<Chat, ChatListAdapter.VH> {
-    public interface OnChatClick { void onClick(Chat chat); }
-    public interface OnChatLongClick { void onLongClick(Chat chat); }
+public class ChatListAdapter extends ListAdapter<ChatListAdapter.Group, ChatListAdapter.VH> {
+    public interface OnGroupClick { void onClick(Group group); }
+    public interface OnGroupLongClick { void onLongClick(Group group); }
+
+    public static class Group {
+        public final String otherId;
+        public final List<Chat> chats;
+
+        Group(String otherId, List<Chat> chats) {
+            this.otherId = otherId;
+            this.chats = chats;
+        }
+
+        public Chat latest() { return chats.get(0); }
+
+        public int unreadFor(String uid) {
+            int sum = 0;
+            for (Chat c : chats) sum += c.getUnreadFor(uid);
+            return sum;
+        }
+
+        String signature(String uid) {
+            StringBuilder sb = new StringBuilder();
+            for (Chat c : chats) {
+                sb.append(c.getId()).append('|').append(c.getLastMessage()).append('|')
+                        .append(c.getUpdatedAt()).append('|').append(c.getUnreadFor(uid)).append(';');
+            }
+            return sb.toString();
+        }
+    }
+
+    public static List<Group> group(List<Chat> chats, String myUid) {
+        Map<String, List<Chat>> map = new LinkedHashMap<>();
+        if (chats != null) {
+            for (Chat c : chats) {
+                String other = c.getOtherId(myUid);
+                if (other == null) continue;
+                List<Chat> list = map.get(other);
+                if (list == null) { list = new ArrayList<>(); map.put(other, list); }
+                list.add(c);
+            }
+        }
+        List<Group> result = new ArrayList<>();
+        for (Map.Entry<String, List<Chat>> e : map.entrySet()) result.add(new Group(e.getKey(), e.getValue()));
+        return result;
+    }
 
     private final String myUid;
-    private final OnChatClick listener;
-    private final OnChatLongClick longListener;
+    private final OnGroupClick listener;
+    private final OnGroupLongClick longListener;
 
-    public ChatListAdapter(String myUid, OnChatClick listener, OnChatLongClick longListener) {
-        super(DIFF);
+    public ChatListAdapter(String myUid, OnGroupClick listener, OnGroupLongClick longListener) {
+        super(new DiffUtil.ItemCallback<Group>() {
+            @Override public boolean areItemsTheSame(@NonNull Group a, @NonNull Group b) {
+                return Objects.equals(a.otherId, b.otherId);
+            }
+            @Override public boolean areContentsTheSame(@NonNull Group a, @NonNull Group b) {
+                return a.signature(myUid).equals(b.signature(myUid))
+                        && Objects.equals(a.latest().getOtherName(myUid), b.latest().getOtherName(myUid))
+                        && Objects.equals(a.latest().getOtherAvatar(myUid), b.latest().getOtherAvatar(myUid));
+            }
+        });
         this.myUid = myUid;
         this.listener = listener;
         this.longListener = longListener;
@@ -41,14 +97,17 @@ public class ChatListAdapter extends ListAdapter<Chat, ChatListAdapter.VH> {
     }
 
     @Override public void onBindViewHolder(@NonNull VH h, int pos) {
-        Chat c = getItem(pos);
+        Group g = getItem(pos);
+        Chat c = g.latest();
+        int more = g.chats.size() - 1;
+
         h.tvName.setText(c.getOtherName(myUid));
-        h.tvProduct.setText(c.getProductTitle());
+        h.tvProduct.setText(c.getProductTitle() + (more > 0 ? " và " + more + " sản phẩm khác" : ""));
         String prefix = myUid.equals(c.getLastSenderId()) ? "Bạn: " : "";
         h.tvLast.setText(prefix + c.getLastMessage());
         h.tvTime.setText(ChatFormat.time(c.getUpdatedAt()));
 
-        int unread = c.getUnreadFor(myUid);
+        int unread = g.unreadFor(myUid);
         boolean hasUnread = unread > 0;
         h.tvLast.setTypeface(null, hasUnread ? Typeface.BOLD : Typeface.NORMAL);
         h.tvLast.setTextColor(hasUnread ? 0xFF0F172A : 0xFF6B7280);
@@ -67,9 +126,9 @@ public class ChatListAdapter extends ListAdapter<Chat, ChatListAdapter.VH> {
                 .placeholder(R.drawable.ic_shopping_cart).error(R.drawable.ic_shopping_cart)
                 .centerCrop().into(h.ivProduct);
 
-        h.itemView.setOnClickListener(v -> listener.onClick(c));
+        h.itemView.setOnClickListener(v -> listener.onClick(g));
         h.itemView.setOnLongClickListener(v -> {
-            longListener.onLongClick(c);
+            longListener.onLongClick(g);
             return true;
         });
     }
@@ -90,17 +149,4 @@ public class ChatListAdapter extends ListAdapter<Chat, ChatListAdapter.VH> {
             tvUnread = v.findViewById(R.id.tvUnread);
         }
     }
-
-    private static final DiffUtil.ItemCallback<Chat> DIFF = new DiffUtil.ItemCallback<Chat>() {
-        @Override public boolean areItemsTheSame(@NonNull Chat a, @NonNull Chat b) {
-            return Objects.equals(a.getId(), b.getId());
-        }
-        @Override public boolean areContentsTheSame(@NonNull Chat a, @NonNull Chat b) {
-            return Objects.equals(a.getLastMessage(), b.getLastMessage())
-                    && Objects.equals(a.getUpdatedAt(), b.getUpdatedAt())
-                    && Objects.equals(a.getUnread(), b.getUnread())
-                    && Objects.equals(a.getBuyerName(), b.getBuyerName())
-                    && Objects.equals(a.getSellerName(), b.getSellerName());
-        }
-    };
 }
